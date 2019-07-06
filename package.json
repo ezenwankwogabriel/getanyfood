@@ -1,0 +1,41 @@
+{
+  "name": "getany-food",
+  "version": "1.0.0",
+  "description": "an application designed to cater to online demand for consumables",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ezenwankwogabriel/Getany-Food.git"
+  },
+  "author": "GabAngel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ezenwankwogabriel/Getany-Food/issues"
+  },
+  "homepage": "https://github.com/ezenwankwogabriel/Getany-Food#readme",
+  "devDependencies": {
+    "faker": "^4.1.0",
+    "jest": "^24.8.0"
+  },
+  "dependencies": {
+    "axios": "^0.19.0",
+    "bcrypt": "^3.0.6",
+    "config": "^3.1.0",
+    "ejs": "^2.6.2",
+    "express": "^4.17.1",
+    "helmet": "^3.18.0",
+    "http": "0.0.0",
+    "lodash": "^4.17.11",
+    "moment": "^2.24.0",
+    "morgan": "^1.9.1",
+    "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0",
+    "passport-local": "^1.0.0",
+    "socket.io": "^2.2.0",
+    "swagger-jsdoc": "^3.2.9",
+    "winston": "^3.2.1"
+  }
+}
