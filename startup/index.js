@@ -4,8 +4,8 @@ const path = require('path'),
     helmet = require('helmet'),
     fileUpload = require('express-fileupload'),
     morgan = require('morgan'),
-    passport = require('passport'),
-    logger = require('./logger');
+    logger = require('./logger'),
+    passport = require('passport');
 
 module.exports = function (app) {
     app.use(passport.initialize());
@@ -30,7 +30,9 @@ module.exports = function (app) {
 
     //pass output from morgan middleware to winston
     app.use(morgan("combined", {
-        "stream": logger.stream
+        stream: {
+            write: message => logger.info(message)
+        }
     }));
 
     // development error handler
@@ -54,5 +56,4 @@ module.exports = function (app) {
             error: {}
         });
     });
-
 }
