@@ -13,13 +13,14 @@ const envName = app.get('env');
 require('./startup/global')(io, {host, port, dbName});
 require('./startup/index')(app);
 require('./startup/passport')();
+require('./startup/expressInstanceMethods')(app);
 
 const server = http.listen(config.port, function(err) {
     if(err) {
         console.log({err})
         process.exit(1)
     }
-    console.log("Started on -port " + port + ' -db: ' + dbName + ' -env: ' + envName + ' -url: ' + host);
+    $debugApp("Started on -port " + port + ' -db: ' + dbName + ' -env: ' + envName + ' -url: ' + host);
 });
 
 module.exports = server;
