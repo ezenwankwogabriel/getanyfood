@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const Joi = require('')
+const bcrypt = require('bcrypt-nodejs');
+const JWT = require('jsonwebtoken');
 const Schema = mongoose.Schema;
 var mongoosePaginate = require('mongoose-paginate');
 
@@ -47,24 +48,18 @@ const userSchema = new Schema({
     }
 });
 
-userSchema.methods.verifyPassword = function() {
-    
+userSchema.methods.verifyPassword = function(providedPassword) {
+    return bcrypt.compareSync(providedPassword, this.password);
+}
+
+userSchema.methods.encryptPayload = function() {
+    const payload = { id: this._id, email: this.emailAddress, userType: this.userType };
+    console.log('hello', payload)
+    return JWT.sign(payload, process.env.secret, { expiresIn: '30d' });
 }
 
 userSchema.statics.createAdmin = async function(body, schema) {
-    const schema = {
-        firstName: Joi.string().min(3).required(),
-        businessAddress: Joi.string().min(3).required(),
-        emailAddress: Joi.string().min(3).required(),
-        phoneNumber: Joi.string().min(3).required(),
-        password: Joi.string().min(3).required(),
-        userType: Joi.string().min(3).required(),
-    }
-
-    const { error } = Joi.validate(body, schema);
-    if(error) 
-        return {result: null, error: error.defaults[0].message}
-    console.log('hello')
+    
     const user = this.create({firstName: body.firstName})
     console.log({user});
     return {result: user}
