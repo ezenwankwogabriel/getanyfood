@@ -9,11 +9,12 @@ const host = config.get('host');
 const dbName = config.get('database');
 const envName = app.get('env');
 
-
-require('./startup/global')(io, {host, port, dbName});
-require('./startup/index')(app);
-require('./startup/passport')();
-require('./startup/expressInstanceMethods')(app);
+require('./startup/db')(); //start db
+require('./startup/global')(io, {host, port, dbName}); //initialize globals
+require('./startup/expressInstanceMethods')(app); //express instance methods
+require('./startup/index')(app); //startup files
+require('./startup/routes')(app); //link to routes
+require('./startup/passport')(); //initialize passport
 
 const server = http.listen(config.port, function(err) {
     if(err) {

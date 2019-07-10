@@ -4,6 +4,7 @@ const LocalStrategy = require('passport-local');
 module.exports = function(User) {
     const localAuth = new LocalStrategy(
         function(username, password, done) {
+          
           User.findOne({ username: username }, function (err, user) {
             if (err) { return done(err); }
             if (!user) { return done(null, false); }
@@ -12,6 +13,5 @@ module.exports = function(User) {
           });
         }
       );
-    
       passport.use('local', localAuth)
 }

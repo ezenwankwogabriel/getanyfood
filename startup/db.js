@@ -4,9 +4,9 @@ const config = require("config");
 const db = config.get('database')
 //  DB Connection =============================================================
 
-module.exports = function() {
+module.exports = function () {
     mongoose.connect(`mongodb://localhost/${db}`, {
-        useMongoClient: true
+        useNewUrlParser: true
     }, (err) => {
         if (err) {
             console.log('database connection error', err);
