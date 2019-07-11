@@ -1,4 +1,3 @@
 module.exports = function(app) {
-    app.use('/', require('../controllers/routes/auth'))
-    
+    app.use('/', require('../controllers/routes/auth'))    
 }

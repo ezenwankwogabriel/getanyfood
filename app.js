@@ -21,14 +21,13 @@ require('./startup/expressInstanceMethods')(app); //express instance methods
 require('./startup/passport')(); //initialize passport
 
 require('./startup/index')(app); //startup files
-require('./startup/routes')(app); //link to routes
 
 const server = http.listen(config.port, function(err) {
     if(err) {
-        console.log({err})
+        $debug({err})
         process.exit(1)
     }
-    $debugApp("Started on -port " + port + ' -db: ' + dbName + ' -env: ' + envName + ' -url: ' + host);
+    $debug("Started on -port " + port + ' -db: ' + dbName + ' -env: ' + envName + ' -url: ' + host);
 });
 
 module.exports = server;

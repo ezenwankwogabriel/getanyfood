@@ -4,9 +4,6 @@ const JWT = require('jsonwebtoken');
 const Schema = mongoose.Schema;
 var mongoosePaginate = require('mongoose-paginate');
 
-const _ = require('lodash');
-const crypto = require('crypto');
-
 const userSchema = new Schema({
     fullName: String,
     businessName: String,
@@ -54,15 +51,7 @@ userSchema.methods.verifyPassword = function(providedPassword) {
 
 userSchema.methods.encryptPayload = function() {
     const payload = { id: this._id, email: this.emailAddress, userType: this.userType };
-    console.log('hello', payload)
     return JWT.sign(payload, process.env.secret, { expiresIn: '30d' });
-}
-
-userSchema.statics.createAdmin = async function(body, schema) {
-    
-    const user = this.create({firstName: body.firstName})
-    console.log({user});
-    return {result: user}
 }
 
 userSchema.plugin(mongoosePaginate);
