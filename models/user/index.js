@@ -54,6 +54,10 @@ userSchema.methods.encryptPayload = function() {
     return JWT.sign(payload, process.env.secret, { expiresIn: '30d' });
 }
 
+userSchema.statics.findByEmail = function(emailAddress) {
+    return this.findOne({emailAddress});
+}
+
 userSchema.plugin(mongoosePaginate);
 
 

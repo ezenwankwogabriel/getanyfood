@@ -23,4 +23,10 @@ module.exports = function(app) {
         }
         next();
     })
+    app.use((req, res, next) => {
+        res.notFound = function(message) {
+            this.status(404).send(message)
+        }
+        next();
+    })
 }
