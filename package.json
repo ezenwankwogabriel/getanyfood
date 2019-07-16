@@ -4,7 +4,8 @@
   "description": "an application designed to cater to online demand for consumables",
   "main": "app.js",
   "scripts": {
-    "test": "jest --watchAll --verbose"
+    "test": "jest --watchAll --verbose --runInBand",
+    "lint": "./node_modules/.bin/eslint --fix ./controllers/ ./middleware/ ./models/ ./startup/ ./utils/"
   },
   "repository": {
     "type": "git",
@@ -17,8 +18,10 @@
   },
   "homepage": "https://github.com/ezenwankwogabriel/Getany-Food#readme",
   "devDependencies": {
+    "eslint": "^6.0.1",
     "faker": "^4.1.0",
-    "jest": "^24.8.0"
+    "jest": "^24.8.0",
+    "supertest": "^4.0.2"
   },
   "dependencies": {
     "@hapi/joi": "^15.1.0",
@@ -30,6 +33,7 @@
     "dotenv": "^8.0.0",
     "ejs": "^2.6.2",
     "express": "^4.17.1",
+    "express-async-errors": "^3.1.1",
     "express-fileupload": "^1.1.5",
     "helmet": "^3.18.0",
     "http": "0.0.0",
@@ -45,6 +49,7 @@
     "socket.io": "^2.2.0",
     "swagger-jsdoc": "^3.2.9",
     "swagger-ui-express": "^4.0.7",
-    "winston": "^3.2.1"
+    "winston": "^3.2.1",
+    "winston-mongodb": "^5.0.0"
   }
 }

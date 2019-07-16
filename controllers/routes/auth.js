@@ -1,6 +1,6 @@
 const express = require('express');
 const Router = express();
-const Auth = require('../repositories/auth');
+const Auth = require('../repositories/auth/auth');
 const passport = require('passport');
 const validateSignUp = require('../../middleware/Auth/validateUserSignUp');
 const verifyEmail = require('../../middleware/Auth/verifyEmail');

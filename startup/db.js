@@ -9,9 +9,9 @@ module.exports = function () {
         useNewUrlParser: true
     }, (err) => {
         if (err) {
-            console.log('database connection error', err);
+            $debug('database connection error', err);
         } else {
-            console.log('database connection successful');
+            $debug('database connection successful');
         }
     });
 }

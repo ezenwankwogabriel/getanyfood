@@ -1,5 +1,7 @@
 const winston = require('winston');
 
+// require('winston-mongodb');
+
 const logger = winston.createLogger({
     level: 'info',
     format: winston.format.json(),
@@ -17,7 +19,13 @@ const logger = winston.createLogger({
         }),
         new winston.transports.File({
             filename: './logs/combined.log'
-        })
+        }),
+        // new winston.transports.MongoDB({
+        //     db: 'getany_test',
+        //     collection: 'logs',
+        //     level: 'info',
+        //     capped: true
+        // })
     ]
 });
 
@@ -25,7 +33,8 @@ const logger = winston.createLogger({
 // If we're not in production then log to the `console` with the format:
 // `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
 // 
-if (process.env.NODE_ENV !== 'production') {
+const env = process.env.NODE_ENV;
+if (env !== 'production' && env !== 'test') {
     logger.add(new winston.transports.Console({
         format: winston.format.simple()
     }));

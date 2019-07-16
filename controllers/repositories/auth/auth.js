@@ -1,10 +1,10 @@
-const User = require('../../models/user/index');
-const asyncMiddleware = require('../../middleware/asyncMiddleware');
-const encryptPassword = require('../../utils/encryptPassword');
+const User = require('../../../models/user/index');
+const encryptPassword = require('../../../utils/encryptPassword');
 const crypto = require('crypto');
+const CreateUser = require('./createUser');
 
 const userActions = {
-    signUp: asyncMiddleware(async (req, res) => {
+    signUp: async (req, res) => {
         const body = req.body;
         const admin = await User.findOne({
             userType: 'admin'
@@ -16,19 +16,11 @@ const userActions = {
         });
         if (user)
             return res.unAuthorized('Account with email address exists')
-        let newUser = new User({
-            firstName: body.firstName,
-            businessAddress: body.businessAddress,
-            emailAddress: body.emailAddress,
-            phoneNumber: body.phoneNumber,
-            password: encryptPassword(body.password),
-            userType: body.userType
-        })
-        await newUser.save();
+        const newUser = await new CreateUser(body).create();
         return res.success(newUser)
-    }),
+    },
 
-    signIn: asyncMiddleware(async (req, res) => {
+    signIn: async (req, res) => {
         if (!req.user)
             return res.unAuthenticated('Invalid details provided')
         let authenticatedUser = req.user;
@@ -36,9 +28,9 @@ const userActions = {
         await authenticatedUser.save();
         let token = await authenticatedUser.encryptPayload();
         return res.success(token)
-    }),
+    },
 
-    forgotPassword: asyncMiddleware(async (req, res) => {
+    forgotPassword: async (req, res) => {
         const buf = crypto.randomBytes(20);
         let user = req.user;
         user.token = buf.toString('hex');
@@ -51,9 +43,9 @@ const userActions = {
         };
         // Email(details);
         return res.success('Reset Link Sent to Your Email');
-    }),
+    },
 
-    resendPassword: asyncMiddleware((req, res) => {
+    resendPassword: (req, res) => {
         const details = {
             email: req.user.emailAddress,
             subject: 'Password Reset Jaiye',
@@ -62,19 +54,19 @@ const userActions = {
         };
         // Email(details);
         res.success('Reset Link Sent to Your Email');
-    }),
+    },
 
-    validatePasswordToken: asyncMiddleware(async (req, res) => {
+    validatePasswordToken: async (req, res) => {
         const user = await User.findOne({
             token: req.params.token
         });
         if (!user)
             return res.badRequest('Password reset token is invalid');
         return res.success();
-    }),
+    },
 
 
-    resetPassword: asyncMiddleware(async (req, res) => {
+    resetPassword: async (req, res) => {
 
         const newPassword = encryptPassword(req.body.password);
         let user = await User.findOneAndUpdate({
@@ -97,7 +89,7 @@ const userActions = {
         // Email(details);
         res.success('Password Reset successful');
         return;
-    })
+    },
 }
 
 

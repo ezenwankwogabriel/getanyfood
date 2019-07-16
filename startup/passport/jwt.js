@@ -4,7 +4,7 @@ const passportJWT = require('passport-jwt');
 const JwtStrategy = passportJWT.Strategy,
     jwtOptions = {};
 
-ExtractJwt = passportJWT.ExtractJwt;
+const ExtractJwt = passportJWT.ExtractJwt;
 jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('jwt');
 jwtOptions.secretOrKey = process.env.secret;
 

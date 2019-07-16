@@ -12,6 +12,12 @@ module.exports = function(app) {
         next();
     })
     app.use((req, res, next) => {
+        res.paymentRequired = function(message) {
+            this.status(402).send(message) //payment required
+        }
+        next();
+    })
+    app.use((req, res, next) => {
         res.badRequest = function (message) {
             this.status(400).send(message) //bad request
         }
