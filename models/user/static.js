@@ -1,4 +1,4 @@
 
-module.exports = function(userSchema) {
+module.exports = function (userSchema) {
 
-}
+};

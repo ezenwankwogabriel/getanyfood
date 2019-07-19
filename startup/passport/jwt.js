@@ -1,25 +1,25 @@
 const passport = require('passport');
 const passportJWT = require('passport-jwt');
 
-const JwtStrategy = passportJWT.Strategy,
-    jwtOptions = {};
+const JwtStrategy = passportJWT.Strategy;
+const jwtOptions = {};
 
-const ExtractJwt = passportJWT.ExtractJwt;
+const { ExtractJwt } = passportJWT;
 jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('jwt');
 jwtOptions.secretOrKey = process.env.secret;
 
 module.exports = function (User) {
-    let Admin = new JwtStrategy(jwtOptions, (jwtPayload, next) => {
-        User.findOne({
-            _id: jwtPayload.id
-        }, (err, users) => {
-            if (users.permission === 1 || users.permission === 3) {
-                next(null, users);
-            } else {
-                next(null, false);
-            }
-        });
-    })
+  const Admin = new JwtStrategy(jwtOptions, (jwtPayload, next) => {
+    User.findOne({
+      _id: jwtPayload.id,
+    }, (err, users) => {
+      if (users.permission === 1 || users.permission === 3) {
+        next(null, users);
+      } else {
+        next(null, false);
+      }
+    });
+  });
 
-    passport.use('admin', Admin);
-}
+  passport.use('admin', Admin);
+};

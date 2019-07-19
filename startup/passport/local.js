@@ -4,8 +4,8 @@ const LocalStrategy = require('passport-local');
 module.exports = function (User) {
   const auth = function (username, password, done) {
     User.findOne({
-      emailAddress: username
-    }, function (err, user) {
+      emailAddress: username,
+    }, (err, user) => {
       if (err) {
         return done(err);
       }
@@ -17,7 +17,7 @@ module.exports = function (User) {
       }
       return done(null, user);
     });
-  }
+  };
   const localAuth = new LocalStrategy(auth);
-  passport.use('local', localAuth)
-}
+  passport.use('local', localAuth);
+};
