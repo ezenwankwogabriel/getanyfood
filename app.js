@@ -3,6 +3,7 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const config = require('config');
+require('express-async-errors')
 require('dotenv').config()
 
 const port = config.get('port');
@@ -19,6 +20,9 @@ require('./startup/db')(); //start db
 require('./startup/global')(io, {host, port, dbName}); //initialize globals
 require('./startup/expressInstanceMethods')(app); //express instance methods
 require('./startup/passport')(); //initialize passport
+require('./startup/unhandledError')();
+
+
 
 require('./startup/index')(app); //startup files
 
