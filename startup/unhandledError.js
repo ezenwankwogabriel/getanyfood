@@ -1,9 +1,10 @@
 const logger = require('./logger');
+const {debug} = require('../utils/common');
 
 module.exports = function () {
   process
     .on('unhandledRejection', (reason) => {
-      $debug(reason.errors, 'Unhandled Rejection at Promise');
+      debug(reason.errors, 'Unhandled Rejection at Promise');
       logger.log({
         level: 'error',
         message: reason,
@@ -11,7 +12,7 @@ module.exports = function () {
       process.exit(1);
     })
     .on('uncaughtException', (err) => {
-      $debug(err, 'Uncaught Exception thrown');
+      debug(err, 'Uncaught Exception thrown');
       logger.log({
         level: 'error',
         message: err,

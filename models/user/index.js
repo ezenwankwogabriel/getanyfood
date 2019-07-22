@@ -20,6 +20,7 @@ const userSchema = new Schema({
     type: String,
     enum: ['admin', 'merchant', 'customer'],
   },
+  token: String,
   resetPasswordExpires: String,
   confirmation_token: String,
   tokenExpires: Number,

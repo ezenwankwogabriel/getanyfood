@@ -11,7 +11,6 @@ Router.post('/register', validateSignUp, Auth.signUp);
 Router.post('/login', passport.authenticate('local', { session: false }), Auth.signIn);
 Router.post('/forgotPassword', verifyEmail, Auth.forgotPassword);
 Router.post('/resendPassword', verifyEmail, Auth.resendPassword);
-Router.post('/resetPassword', validateForgotPassword, Auth.resetPassword);
-
+Router.post('/resetPassword/:token', validateForgotPassword, Auth.resetPassword);
 
 module.exports = Router;

@@ -2,6 +2,9 @@ const crypto = require('crypto');
 const User = require('../../../models/user/index');
 const encryptPassword = require('../../../utils/encryptPassword');
 const CreateUser = require('./createUser');
+const Email = require('../../../utils/email');
+const common = require('../../../utils/common');
+const {supportEmail} = require('../../../utils/common');
 
 const userActions = {
   signUp: async (req, res) => {
@@ -31,26 +34,30 @@ const userActions = {
   forgotPassword: async (req, res) => {
     const buf = crypto.randomBytes(20);
     const { user } = req;
+    const path = req.body.path || 'resetPassword';
     user.token = buf.toString('hex');
     await user.save();
-    // const details = {
-    //   email: user.emailAddress,
-    //   subject: 'Password Reset GetAnyFood',
-    //   content: `Link to reset of GetAnyFood password account \n ${process.env.web_host}/resetPassword/${user.token}`,
-    //   template: 'email',
-    // };
-    // Email(details);
+    const details = {
+      email: user.emailAddress,
+      subject: 'Password Reset GetAnyFood',
+      content: `Link to reset of GetAnyFood password account \n ${common.webHost}/${path}/${user.token}`,
+      template: 'email',
+    };
+    new Email(details).send();
     return res.success('Reset Link Sent to Your Email');
   },
 
   resendPassword: (req, res) => {
-    // const details = {
-    //   email: req.user.emailAddress,
-    //   subject: 'Password Reset Jaiye',
-    //   contents: `Link to reset of Jaiye password account \n ${process.env.web_host}/resetPassword/${req.user.token}`,
-    //   template: 'email',
-    // };
-    // Email(details);
+    const path = req.body.path || 'resetPassword';
+    if(!req.user.token) 
+      return res.badRequest('Use the Reset Password route')
+    const details = {
+      email: req.user.emailAddress,
+      subject: 'Password Reset Jaiye',
+      contents: `Link to reset of Jaiye password account \n ${common.webHost}/${path}/${req.user.token}`,
+      template: 'email',
+    };
+    new Email(details).send();
     res.success('Reset Link Sent to Your Email');
   },
 
@@ -63,7 +70,7 @@ const userActions = {
   },
 
 
-  resetPassword: async (req, res) => {
+  resetPassword: async (req, res) => { 
     const newPassword = encryptPassword(req.body.password);
     const user = await User.findOneAndUpdate({
       token: req.params.token,
@@ -73,15 +80,16 @@ const userActions = {
         password: newPassword,
       },
     });
-    if (!user) { res.badRequest('Invalid token provided'); }
+    if (!user) 
+      return res.badRequest('Invalid token provided'); 
 
     const details = {
       subject: 'Password reset',
-      email: user.email,
-      content: `You are receiving this because you (or someone else) has changed the password for your account on http://${req.headers.host}.\n\n If you did not request this, please reset your password or contact support@nerlogistics.com for further actions.\n`,
+      email: user.emailAddress,
+      content: `You are receiving this because you (or someone else) has changed the password for your account on http://${req.headers.host}.\n\n If you did not request this, please reset your password or contact ${supportEmail} for further actions.\n`,
       template: 'email',
     };
-    // Email(details);
+    new Email(details).send();
     res.success('Password Reset successful');
   },
 };

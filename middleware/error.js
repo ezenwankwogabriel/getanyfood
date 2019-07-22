@@ -1,5 +1,6 @@
 const app = require('express')();
 const logger = require('../startup/logger');
+const {debug} = require('../utils/common');
 
 module.exports = function (err, req, res, next) {
   const env = app.get('env') === 'development';
@@ -9,7 +10,7 @@ module.exports = function (err, req, res, next) {
   if(env && !env.errors) 
     errObject = err;
 
-  $debug(err);
+  debug(err);
   logger.log({
     message: err,
     level: 'error',
