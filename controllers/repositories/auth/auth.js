@@ -3,8 +3,7 @@ const User = require('../../../models/user/index');
 const encryptPassword = require('../../../utils/encryptPassword');
 const CreateUser = require('./createUser');
 const Email = require('../../../utils/email');
-const common = require('../../../utils/common');
-const {supportEmail} = require('../../../utils/common');
+const {supportEmail, webHost} = require('../../../utils/common');
 
 const userActions = {
   signUp: async (req, res) => {
@@ -40,7 +39,7 @@ const userActions = {
     const details = {
       email: user.emailAddress,
       subject: 'Password Reset GetAnyFood',
-      content: `Link to reset of GetAnyFood password account \n ${common.webHost}/${path}/${user.token}`,
+      content: `Link to reset of GetAnyFood password account \n ${webHost}/${path}/${user.token}`,
       template: 'email',
     };
     new Email(details).send();
@@ -54,7 +53,7 @@ const userActions = {
     const details = {
       email: req.user.emailAddress,
       subject: 'Password Reset Jaiye',
-      contents: `Link to reset of Jaiye password account \n ${common.webHost}/${path}/${req.user.token}`,
+      contents: `Link to reset of Jaiye password account \n ${webHost}/${path}/${req.user.token}`,
       template: 'email',
     };
     new Email(details).send();
