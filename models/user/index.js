@@ -6,7 +6,8 @@ const { Schema } = mongoose;
 const mongoosePaginate = require('mongoose-paginate');
 
 const userSchema = new Schema({
-  fullName: String,
+    firstName: String,
+    lastName: String,
   businessName: String,
   emailAddress: {
     type: String,
@@ -45,7 +46,7 @@ const userSchema = new Schema({
   profileThumbnail: String,
   created_time: {
     type: Date,
-    default: new Date(),
+    default: Date.now,
   },
   updated_time: {
     type: Date,
@@ -62,13 +63,19 @@ const userSchema = new Schema({
   },
 });
 
-userSchema.methods.verifyPassword = function (providedPassword) {
-  return bcrypt.compareSync(providedPassword, this.password);
+userSchema.virtual('fullName').get(() => `${this.firstName} ${this.lastName}`);
+
+userSchema.methods.verifyPassword = function(providedPassword) {
+    return bcrypt.compareSync(providedPassword, this.password);
 };
 
-userSchema.methods.encryptPayload = function () {
-  const payload = { id: this._id, email: this.emailAddress, userType: this.userType };
-  return JWT.sign(payload, process.env.secret, { expiresIn: '30d' });
+userSchema.methods.encryptPayload = function() {
+    const payload = {
+        id: this._id,
+        email: this.emailAddress,
+        userType: this.userType,
+    };
+    return JWT.sign(payload, process.env.secret, {expiresIn: '30d'});
 };
 
 userSchema.statics.findByEmail = function (emailAddress) {
@@ -85,6 +92,5 @@ userSchema.statics.verifyAdminPassword = async function (userId, adminPassword) 
 };
 
 userSchema.plugin(mongoosePaginate);
-
 
 module.exports = mongoose.model('User', userSchema);
