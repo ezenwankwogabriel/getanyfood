@@ -7,7 +7,7 @@ const AuditTrailModel = require('../models/audit');
  * @param {String} agent device used by user
  */
 async function auditTrail(req, activity) {
-  const userAgent = req.headers['user-agent'] || "";
+  const userAgent = req.headers['user-agent'] || '';
   const userId = req.user._id;
   try {
     await new AuditTrailModel({ user: userId, activity, agent: userAgent }).save();

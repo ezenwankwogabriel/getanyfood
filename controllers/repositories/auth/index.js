@@ -2,7 +2,9 @@ const crypto = require('crypto');
 const User = require('../../../models/user/index');
 const encryptPassword = require('../../../utils/encryptPassword');
 const CreateUser = require('./createUser');
-const { supportEmail, webHost, Email, AuditTrail } = require('../../../utils');
+const {
+  supportEmail, webHost, Email, AuditTrail,
+} = require('../../../utils');
 
 const userActions = {
   signUp: async (req, res) => {
@@ -25,7 +27,7 @@ const userActions = {
     const authenticatedUser = req.user;
     authenticatedUser.updated_time = new Date();
     await authenticatedUser.save();
-    await AuditTrail(req, 'Login')
+    await AuditTrail(req, 'Login');
     const token = await authenticatedUser.encryptPayload();
     return res.success(token);
   },

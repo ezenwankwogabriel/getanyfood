@@ -33,7 +33,9 @@ router.get('/:id', (req, res) => {
 });
 
 router.patch('/:id', async (req, res) => {
-  const { firstName, lastName, profilePhoto, oldPassword, password } = req.body;
+  const {
+    firstName, lastName, profilePhoto, oldPassword, password,
+  } = req.body;
 
   if (firstName) req.scopedUser.firstName = firstName;
 
@@ -42,11 +44,9 @@ router.patch('/:id', async (req, res) => {
   if (profilePhoto) req.scopedUser.profilePhoto = profilePhoto;
 
   if (password && oldPassword) {
-    if (req.scopedUser.id !== req.user.id)
-      return res.badRequest('You can only change your own password');
+    if (req.scopedUser.id !== req.user.id) return res.badRequest('You can only change your own password');
 
-    if (!req.scopedUser.verifyPassword(oldPassword))
-      return res.badRequest('Enter your current password correctly');
+    if (!req.scopedUser.verifyPassword(oldPassword)) return res.badRequest('Enter your current password correctly');
 
     req.scopedUser.password = encryptPassword(password);
   }

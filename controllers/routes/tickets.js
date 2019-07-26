@@ -31,7 +31,7 @@ router.use('/:id', scopeRequest);
 
 router.post('/', async (req, res) => {
   const { title, messages } = req.body;
-  const datedMessages = messages.map((message) => ({
+  const datedMessages = messages.map(message => ({
     ...message,
     sender: req.user.id,
     sentAt: new Date(),
