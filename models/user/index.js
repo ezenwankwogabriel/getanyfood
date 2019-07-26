@@ -1,22 +1,44 @@
-const mongoose = require('mongoose');
 const bcrypt = require('bcrypt-nodejs');
 const JWT = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate');
+const encryptPassword = require('../../utils/encryptPassword');
 
 const { Schema } = mongoose;
-const mongoosePaginate = require('mongoose-paginate');
 
 const userSchema = new Schema({
-    firstName: String,
-    lastName: String,
-  businessName: String,
+  firstName: { type: String, minlength: 3, required: true },
+  lastName: { type: String, minlength: 2, required: true },
+  businessName: {
+    type: String,
+    minlength: 3,
+    required: () => this.userType === 'merchant',
+  },
   emailAddress: {
     type: String,
     lowercase: true,
     trim: true,
+    required: true,
   },
-  phoneNumber: String,
-  businessAddress: String,
-  password: String,
+  phoneNumber: {
+    type: String, minlength: 11, maxlength: 11, required: true,
+  },
+  businessAddress: {
+    type: String,
+    minlength: 3,
+    required: () => this.userType === 'merchant',
+  },
+  businessCategory: String,
+  businessDescription: String,
+  workingHours: {
+    openTime: String,
+    closeTime: String,
+  },
+  location: {
+    state: String,
+    city: String,
+  },
+  password: { type: String, set: encryptPassword, required: true },
   userType: {
     type: String,
     enum: ['super_admin', 'merchant', 'customer', 'sub_admin', 'sub_merchant'],
@@ -65,24 +87,20 @@ const userSchema = new Schema({
 
 userSchema.virtual('fullName').get(() => `${this.firstName} ${this.lastName}`);
 
-userSchema.methods.verifyPassword = function(providedPassword) {
-    return bcrypt.compareSync(providedPassword, this.password);
+userSchema.methods.verifyPassword = providedPassword => bcrypt.compareSync(providedPassword, this.password);
+
+userSchema.methods.encryptPayload = () => {
+  const payload = {
+    id: this._id,
+    email: this.emailAddress,
+    userType: this.userType,
+  };
+  return JWT.sign(payload, process.env.secret, { expiresIn: '30d' });
 };
 
-userSchema.methods.encryptPayload = function() {
-    const payload = {
-        id: this._id,
-        email: this.emailAddress,
-        userType: this.userType,
-    };
-    return JWT.sign(payload, process.env.secret, {expiresIn: '30d'});
-};
+userSchema.statics.findByEmail = emailAddress => this.findOne({ emailAddress });
 
-userSchema.statics.findByEmail = function (emailAddress) {
-  return this.findOne({ emailAddress });
-};
-
-userSchema.statics.verifyAdminPassword = async function (userId, adminPassword) {
+userSchema.statics.verifyAdminPassword = async (userId, adminPassword) => {
   try {
     const adminUser = await this.findOne({ _id: userId });
     return bcrypt.compareSync(adminPassword, adminUser.password);

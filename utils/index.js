@@ -2,7 +2,7 @@ const config = require('config');
 const debug = require('debug')('app:startup');
 
 const Email = require('./email');
-const AuditTrail = require('./auditTrail')
+const AuditTrail = require('./auditTrail');
 const EncryptPassword = require('./encryptPassword');
 const PaginateRequest = require('./paginateRequest');
 const UserSubType = require('./userSubType');
@@ -19,5 +19,5 @@ module.exports = {
   EncryptPassword,
   PaginateRequest,
   UserSubType,
-  AuditTrail
+  AuditTrail,
 };

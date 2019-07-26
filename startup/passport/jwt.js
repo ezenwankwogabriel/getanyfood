@@ -21,6 +21,20 @@ function jwt(User) {
     );
   });
 
+  const Merchant = new JwtStrategy(jwtOptions, (jwtPayload, next) => {
+    User.findOne(
+      {
+        _id: jwtPayload.id,
+      },
+      (err, user) => {
+        if (err) return next(err);
+        if (!user) return next(null, false);
+        if (user.userType === 'merchant') return next(null, user);
+        return next(null, false);
+      },
+    );
+  });
+
   const Auth = new JwtStrategy(jwtOptions, (jwtPayload, next) => {
     User.findOne(
       {
@@ -36,6 +50,7 @@ function jwt(User) {
   });
 
   passport.use('admin', Admin);
+  passport.use('merchant', Merchant);
   passport.use('auth', Auth);
 }
 

@@ -7,11 +7,13 @@
  */
 async function paginateRequest(req, query, Model) {
   try {
-    let {page, limit} = req.query;
-    page = page && Number(page) > 0? Number(page) : 1;
-    limit = limit && Number(limit) > 0? Number(limit) : 10;
+    let { page, limit } = req.query;
+    page = page && Number(page) > 0 ? Number(page) : 1;
+    limit = limit && Number(limit) > 0 ? Number(limit) : 10;
     const sort = { $natural: -1 };
-    return await Model.paginate(query, { select: { password: 0 }, sort, page, limit } );
+    return await Model.paginate(query, {
+      select: { password: 0 }, sort, page, limit,
+    });
   } catch (ex) {
     throw new Error(ex);
   }
