@@ -22,12 +22,12 @@ describe('Auth', () => {
             this.emailAddress = faker.internet.email();
             this.businessAddress = faker.address.streetAddress();
             this.businessName = faker.name.findName();
-            this.phoneNumber = faker.phone.phoneNumber();
+            this.phoneNumber = '92838239838';
             this.password = faker.internet.password();
             this.userType;
         }
         isAdmin() {
-            this.userType = 'admin';
+            this.userType = 'super_admin';
             return this;
         }
         isMerchant() {
@@ -47,7 +47,7 @@ describe('Auth', () => {
         })
         it('return unathorized if trying to create multiple admins', async () => {
             await User.collection.insert({
-                userType: 'admin'
+                userType: 'super_admin'
             });
             const admin = new fakeUser().isAdmin();
             const res = await request(server).post('/register').send(admin);
@@ -59,7 +59,7 @@ describe('Auth', () => {
             const userObject = new fakeUser().isMerchant();
             await User.collection.insertMany([{
                 emailAddress: faker.internet.email(),
-                userType: 'admin'
+                userType: 'super_admin'
             }, {
                 emailAddress: userObject.emailAddress.toLowerCase()
             }]);

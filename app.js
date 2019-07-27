@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const {dbName, port, debug, host} = require('./utils/common');
+const {dbName, port, debug, host} = require('./utils');
 require('express-async-errors')
 require('dotenv').config()
 

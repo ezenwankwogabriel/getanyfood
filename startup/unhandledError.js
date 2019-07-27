@@ -1,7 +1,7 @@
 const logger = require('./logger');
-const {debug} = require('../utils/common');
+const { debug } = require('../utils');
 
-module.exports = function () {
+function unhandledError() {
   process
     .on('unhandledRejection', (reason) => {
       debug(reason.errors, 'Unhandled Rejection at Promise');
@@ -19,4 +19,6 @@ module.exports = function () {
       });
       process.exit(1);
     });
-};
+}
+
+module.exports = unhandledError;

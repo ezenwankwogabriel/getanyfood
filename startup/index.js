@@ -11,7 +11,7 @@ const swagger = require('./swagger');
 const routes = require('./routes');
 const error = require('../middleware/error');
 
-module.exports = function (app) {
+function startup(app) {
   if (!process.env.secret) { return process.exit(1); }
 
   app.set('view_engine', 'ejs');
@@ -38,4 +38,6 @@ module.exports = function (app) {
   app.use(express.static('public'));
   routes(app); // link to routes
   app.use(error); // error handler
-};
+}
+
+module.exports = startup;

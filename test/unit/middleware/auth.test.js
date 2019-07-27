@@ -3,12 +3,12 @@ const validateForgotPassword = require('../../../middleware/Auth/validateForgotP
 
 describe('Authentication Middlewares', function() {
     describe('User Signup Details', () => {
-        it('it should veriy user credentials as valid', () => {
+        it.skip('it should veriy user credentials as valid', () => {
             
         })
     })
     describe('Verify a valid password was provied', function() {
-        it('should return 403 a valid password was not provided', () => {
+        it.skip('should return 403 a valid password was not provided', () => {
             // const req = jest.fn().mockReturnValue({password: 'hello'});
             // const res = jest.fn();
             // const next = jest.fn();

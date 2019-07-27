@@ -1,14 +1,12 @@
 const app = require('express')();
 const logger = require('../startup/logger');
-const {debug} = require('../utils/common');
+const { debug } = require('../utils');
 
 module.exports = function (err, req, res, next) {
   const env = app.get('env') === 'development';
   let errObject;
-  if(env && env.errors) 
-    errObject = err.errors;
-  if(env && !env.errors) 
-    errObject = err;
+  if (env && env.errors) { errObject = err.errors; }
+  if (env && !env.errors) { errObject = err; }
 
   debug(err);
   logger.log({
@@ -18,6 +16,6 @@ module.exports = function (err, req, res, next) {
   res.status(err.status || 500);
   res.json({
     message: err.message,
-    error: errObject || {}
+    error: errObject || {},
   });
 };

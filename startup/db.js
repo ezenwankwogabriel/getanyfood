@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 const config = require('config');
-const {debug, dbName} = require('../utils/common');
+const { debug, dbName } = require('../utils');
 
 //  DB Connection =============================================================
-
-module.exports = function () {
+function dbConnect() {
   mongoose.connect(`mongodb://localhost/${dbName}`, {
     useNewUrlParser: true,
   }, (err) => {
@@ -14,4 +13,5 @@ module.exports = function () {
       debug('database connection successful');
     }
   });
-};
+}
+module.exports = dbConnect;

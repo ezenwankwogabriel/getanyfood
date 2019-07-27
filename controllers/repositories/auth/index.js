@@ -2,17 +2,16 @@ const crypto = require('crypto');
 const User = require('../../../models/user/index');
 const encryptPassword = require('../../../utils/encryptPassword');
 const CreateUser = require('./createUser');
-const Email = require('../../../utils/email');
-const {supportEmail, webHost} = require('../../../utils/common');
+const { supportEmail, webHost, Email, AuditTrail } = require('../../../utils');
 
 const userActions = {
   signUp: async (req, res) => {
     const { body } = req;
     const admin = await User.findOne({
-      userType: 'admin',
+      userType: 'super_admin',
     });
-    if (!admin && body.userType !== 'admin') return res.unAuthorized('Create an admin account to continue');
-    if (admin && body.userType === 'admin') return res.unAuthorized('Admin account already exists');
+    if (!admin && body.userType !== 'super_admin') return res.unAuthorized('Create an admin account to continue');
+    if (admin && body.userType === 'super_admin') return res.unAuthorized('Admin account already exists');
     const user = await User.findOne({
       emailAddress: body.emailAddress,
     });
@@ -22,10 +21,11 @@ const userActions = {
   },
 
   signIn: async (req, res) => {
-    if (!req.user) { return res.unAuthenticated('Invalid details provided'); }
+    if (!req.user.status) { return res.unAuthenticated('Accound Suspended'); }
     const authenticatedUser = req.user;
     authenticatedUser.updated_time = new Date();
     await authenticatedUser.save();
+    await AuditTrail(req, 'Login')
     const token = await authenticatedUser.encryptPayload();
     return res.success(token);
   },
@@ -48,8 +48,7 @@ const userActions = {
 
   resendPassword: (req, res) => {
     const path = req.body.path || 'resetPassword';
-    if(!req.user.token) 
-      return res.badRequest('Use the Reset Password route')
+    if (!req.user.token) { return res.badRequest('Use the Reset Password route'); }
     const details = {
       email: req.user.emailAddress,
       subject: 'Password Reset Jaiye',
@@ -69,7 +68,7 @@ const userActions = {
   },
 
 
-  resetPassword: async (req, res) => { 
+  resetPassword: async (req, res) => {
     const newPassword = encryptPassword(req.body.password);
     const user = await User.findOneAndUpdate({
       token: req.params.token,
@@ -79,8 +78,7 @@ const userActions = {
         password: newPassword,
       },
     });
-    if (!user) 
-      return res.badRequest('Invalid token provided'); 
+    if (!user) { return res.badRequest('Invalid token provided'); }
 
     const details = {
       subject: 'Password reset',

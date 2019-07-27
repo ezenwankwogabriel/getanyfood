@@ -2,7 +2,7 @@ const express = require('express');
 
 const Router = express();
 const passport = require('passport');
-const Auth = require('../repositories/auth/auth');
+const Auth = require('../repositories/auth/index');
 const validateSignUp = require('../../middleware/Auth/validateUserSignUp');
 const verifyEmail = require('../../middleware/Auth/verifyEmail');
 const validateForgotPassword = require('../../middleware/Auth/validateForgotPassword');

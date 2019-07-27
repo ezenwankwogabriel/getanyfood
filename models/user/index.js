@@ -18,8 +18,23 @@ const userSchema = new Schema({
   password: String,
   userType: {
     type: String,
-    enum: ['admin', 'merchant', 'customer'],
+    enum: ['super_admin', 'merchant', 'customer', 'sub_admin', 'sub_merchant'],
   },
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
+  permission: {
+    type: Object,
+    contentManagement: Boolean,
+    userManagement: Boolean,
+    support: Boolean,
+    payment: Boolean,
+    report: Boolean,
+    profile: Boolean,
+    orders: Boolean,
+  },
+  adminId: { type: Schema.Types.ObjectId, ref: 'User' },
   token: String,
   resetPasswordExpires: String,
   confirmation_token: String,
@@ -58,6 +73,15 @@ userSchema.methods.encryptPayload = function () {
 
 userSchema.statics.findByEmail = function (emailAddress) {
   return this.findOne({ emailAddress });
+};
+
+userSchema.statics.verifyAdminPassword = async function (userId, adminPassword) {
+  try {
+    const adminUser = await this.findOne({ _id: userId });
+    return bcrypt.compareSync(adminPassword, adminUser.password);
+  } catch (ex) {
+    throw new Error(ex);
+  }
 };
 
 userSchema.plugin(mongoosePaginate);
