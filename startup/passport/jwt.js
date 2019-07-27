@@ -8,18 +8,37 @@ const { ExtractJwt } = passportJWT;
 jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('jwt');
 jwtOptions.secretOrKey = process.env.secret;
 
-module.exports = function (User) {
+function jwt(User) {
   const Admin = new JwtStrategy(jwtOptions, (jwtPayload, next) => {
     User.findOne({
       _id: jwtPayload.id,
-    }, (err, users) => {
-      if (users.permission === 1 || users.permission === 3) {
-        next(null, users);
-      } else {
-        next(null, false);
-      }
+    }, (err, user) => {
+      if (err)
+        return next(err);
+      if(!user)
+       return next(null, false)
+      if (user.userType === 'super_admin')
+         return next(null, user)
+      return next(null, false);
     });
   });
 
-  passport.use('admin', Admin);
-};
+  const Auth = new JwtStrategy(jwtOptions, (jwtPayload, next) => {
+    User.findOne({
+      _id: jwtPayload.id,
+    }, (err, user) => {
+      if (err)
+        return next(err);
+      if(!user)
+        return next(null, false)
+      if (user.status)
+        return next(null, user)
+      return next(null, false);
+    });
+  });
+
+  passport.use('isAdmin', Admin);
+  passport.use('auth', Auth);
+}
+
+module.exports = jwt;

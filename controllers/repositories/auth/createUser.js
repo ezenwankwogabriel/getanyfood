@@ -13,7 +13,7 @@ class CreateUser {
     this.password = password;
     this.userType = userType;
     this.types = {
-      admin: 'createAdmin',
+      super_admin: 'createSuperAdmin',
       merchant: 'createMerchant',
       customer: 'createCustomer',
     };
@@ -22,7 +22,7 @@ class CreateUser {
   async create() {
     const userType = this.types[this.userType];
     if (userType) { return this[userType](); }
-    throw new Error('Invalid User Type Provided, Allowed userType: [admin, merchant, customer]');
+    throw new Error('Invalid User Type Provided, Allowed userType: [super_admin, merchant, customer]');
   }
 
   async createMerchant() {
@@ -34,6 +34,7 @@ class CreateUser {
         phoneNumber: this.phoneNumber,
         password: encryptPassword(this.password),
         userType: this.userType,
+        isAdmin: true,
       });
       await merchant.save();
       return merchant;
@@ -42,12 +43,13 @@ class CreateUser {
     }
   }
 
-  async createAdmin() {
+  async createSuperAdmin() {
     try {
       const admin = new User({
         emailAddress: this.emailAddress,
         password: encryptPassword(this.password),
         userType: this.userType,
+        isAdmin: true,
       });
       await admin.save();
       return admin;
@@ -64,6 +66,7 @@ class CreateUser {
         phoneNumber: this.phoneNumber,
         password: encryptPassword(this.password),
         userType: this.userType,
+        isAdmin: true,
       });
       await customer.save();
       return customer;

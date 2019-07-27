@@ -1,6 +1,8 @@
 const User = require('../../models/user/index');
+const jwt = require('./jwt');
+const local = require('./local');
 
 module.exports = function () {
-  require('./jwt')(User); // jwt auth
-  require('./local')(User); // local auth
+  jwt(User); // jwt auth
+  local(User); // local auth
 };
