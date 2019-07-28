@@ -1,107 +1,19 @@
 const { Router } = require('express');
 const passport = require('passport');
-const Ticket = require('../../models/ticket');
-const User = require('../../models/user');
+const Ticket = require('../repositories/tickets');
 
 const router = new Router();
 
-const scopeRequest = async (req, res, next) => {
-  const ticket = await Ticket.findById(req.params.id)
-    .populate({
-      path: 'createdBy',
-      model: User,
-      select: '-password -deleted',
-    })
-    .populate({
-      path: 'messages.sender',
-      model: User,
-      select: '-password -deleted',
-    });
+router.use(passport.authenticate('admin', { session: false }));
 
-  if (!ticket) return res.status(404).send('This ticket does not exist.');
+router.get('/', Ticket.showAll);
 
-  req.scopedTicket = ticket;
+router.use('/:id', Ticket.scopeRequest);
 
-  return next();
-};
+router.get('/:id', Ticket.showOne);
 
-const authJWT = passport.authenticate('admin', { session: false });
-router.use(authJWT);
-router.use('/:id', scopeRequest);
+router.get('/:id/messages', Ticket.showMessages);
 
-router.post('/', async (req, res) => {
-  const { title, messages } = req.body;
-  const datedMessages = messages.map(message => ({
-    ...message,
-    sender: req.user.id,
-    sentAt: new Date(),
-  }));
-
-  const ticket = new Ticket({
-    title,
-    createdBy: req.user.id,
-    messages: datedMessages,
-  });
-
-  const savedTicket = await ticket.save();
-  const fullTicket = await Ticket.findById(savedTicket.id)
-    .populate({
-      path: 'createdBy',
-      model: User,
-      select: '-password -deleted',
-    })
-    .populate({
-      path: 'messages.sender',
-      model: User,
-      select: '-password -deleted',
-    });
-  res.success(fullTicket);
-});
-
-router.get('/', async (req, res) => {
-  const tickets = await Ticket.find()
-    .populate({
-      path: 'createdBy',
-      model: User,
-      select: '-password -deleted',
-    })
-    .populate({
-      path: 'messages.sender',
-      model: User,
-      select: '-password -deleted',
-    });
-  return res.success(tickets);
-});
-
-router.get('/:id', async (req, res) => res.success(req.scopedTicket));
-
-router.get('/:id/messages', async (req, res) => {
-  res.success(req.scopedTicket.messages);
-});
-
-router.post('/:id/messages', async (req, res) => {
-  const { text, attachments } = req.body;
-
-  req.scopedTicket.messages.push({
-    text,
-    attachments,
-    sender: req.user.id,
-    sentAt: new Date(),
-  });
-
-  const ticket = await req.scopedTicket.save();
-  const fullTicket = await Ticket.findById(ticket.id)
-    .populate({
-      path: 'createdBy',
-      model: User,
-      select: '-password -deleted',
-    })
-    .populate({
-      path: 'messages.sender',
-      model: User,
-      select: '-password -deleted',
-    });
-  return res.success(fullTicket.messages[fullTicket.messages.length - 1]);
-});
+router.post('/:id/messages', Ticket.createMessage);
 
 module.exports = router;
