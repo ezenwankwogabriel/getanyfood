@@ -1,10 +1,7 @@
 const crypto = require('crypto');
 const User = require('../../../models/user/index');
-const encryptPassword = require('../../../utils/encryptPassword');
 const CreateUser = require('./createUser');
-const {
-  supportEmail, webHost, Email, AuditTrail,
-} = require('../../../utils');
+const { supportEmail, webHost, Email, AuditTrail } = require('../../../utils');
 
 const userActions = {
   signUp: async (req, res) => {
@@ -12,18 +9,24 @@ const userActions = {
     const admin = await User.findOne({
       userType: 'super_admin',
     });
-    if (!admin && body.userType !== 'super_admin') return res.unAuthorized('Create an admin account to continue');
-    if (admin && body.userType === 'super_admin') return res.unAuthorized('Admin account already exists');
+    if (!admin && body.userType !== 'super_admin')
+      return res.unAuthorized('Create an admin account to continue');
+    if (admin && body.userType === 'super_admin')
+      return res.unAuthorized('Admin account already exists');
     const user = await User.findOne({
       emailAddress: body.emailAddress,
     });
-    if (user) { return res.unAuthorized('Account with email address exists'); }
+    if (user) {
+      return res.unAuthorized('Account with email address exists');
+    }
     const newUser = await new CreateUser(body).create();
     return res.success(newUser);
   },
 
   signIn: async (req, res) => {
-    if (!req.user.status) { return res.unAuthenticated('Accound Suspended'); }
+    if (!req.user.status) {
+      return res.unAuthenticated('Accound Suspended');
+    }
     const authenticatedUser = req.user;
     authenticatedUser.updated_time = new Date();
     await authenticatedUser.save();
@@ -50,7 +53,9 @@ const userActions = {
 
   resendPassword: (req, res) => {
     const path = req.body.path || 'resetPassword';
-    if (!req.user.token) { return res.badRequest('Use the Reset Password route'); }
+    if (!req.user.token) {
+      return res.badRequest('Use the Reset Password route');
+    }
     const details = {
       email: req.user.emailAddress,
       subject: 'Password Reset Jaiye',
@@ -65,22 +70,28 @@ const userActions = {
     const user = await User.findOne({
       token: req.params.token,
     });
-    if (!user) { return res.badRequest('Password reset token is invalid'); }
+    if (!user) {
+      return res.badRequest('Password reset token is invalid');
+    }
     return res.success();
   },
 
-
   resetPassword: async (req, res) => {
-    const newPassword = encryptPassword(req.body.password);
-    const user = await User.findOneAndUpdate({
-      token: req.params.token,
-    }, {
-      $set: {
-        token: '',
-        password: newPassword,
+    const newPassword = req.body.password;
+    const user = await User.findOneAndUpdate(
+      {
+        token: req.params.token,
       },
-    });
-    if (!user) { return res.badRequest('Invalid token provided'); }
+      {
+        $set: {
+          token: '',
+          password: newPassword,
+        },
+      },
+    );
+    if (!user) {
+      return res.badRequest('Invalid token provided');
+    }
 
     const details = {
       subject: 'Password reset',
@@ -92,6 +103,5 @@ const userActions = {
     res.success('Password Reset successful');
   },
 };
-
 
 module.exports = userActions;

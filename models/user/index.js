@@ -7,8 +7,14 @@ const encryptPassword = require('../../utils/encryptPassword');
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
-  firstName: { type: String, minlength: 3, required: true },
-  lastName: { type: String, minlength: 2, required: true },
+  firstName: {
+    type: String,
+    minlength: 3,
+  },
+  lastName: {
+    type: String,
+    minlength: 2,
+  },
   businessName: {
     type: String,
     minlength: 3,
@@ -21,12 +27,13 @@ const userSchema = new Schema({
     required: true,
   },
   phoneNumber: {
-    type: String, minlength: 11, maxlength: 11, required: true,
+    type: String,
+    minlength: 11,
+    maxlength: 11,
   },
   businessAddress: {
     type: String,
     minlength: 3,
-    required: () => this.userType === 'merchant',
   },
   businessCategory: String,
   businessDescription: String,
@@ -87,9 +94,11 @@ const userSchema = new Schema({
 
 userSchema.virtual('fullName').get(() => `${this.firstName} ${this.lastName}`);
 
-userSchema.methods.verifyPassword = providedPassword => bcrypt.compareSync(providedPassword, this.password);
+userSchema.methods.verifyPassword = function verifyPassword(providedPassword) {
+  return bcrypt.compareSync(providedPassword, this.password);
+};
 
-userSchema.methods.encryptPayload = () => {
+userSchema.methods.encryptPayload = function encryptPayload() {
   const payload = {
     id: this._id,
     email: this.emailAddress,
@@ -98,7 +107,8 @@ userSchema.methods.encryptPayload = () => {
   return JWT.sign(payload, process.env.secret, { expiresIn: '30d' });
 };
 
-userSchema.statics.findByEmail = emailAddress => this.findOne({ emailAddress });
+userSchema.statics.findByEmail = (emailAddress) =>
+  this.findOne({ emailAddress });
 
 userSchema.statics.verifyAdminPassword = async (userId, adminPassword) => {
   try {
