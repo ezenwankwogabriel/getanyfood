@@ -43,7 +43,7 @@ function jwt(User) {
       (err, user) => {
         if (err) return next(err);
         if (!user) return next(null, false);
-        if (user.userType === 'merchant') return next(null, user);
+        if (user.userType === 'customer') return next(null, user);
         return next(null, false);
       },
     );

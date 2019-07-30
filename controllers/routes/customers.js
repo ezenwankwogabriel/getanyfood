@@ -1,35 +1,33 @@
-const {Router} = require('express');
-const router = new Router();
+const { Router } = require('express');
+const passport = require('passport');
 const User = require('../repositories/users');
 const Order = require('../repositories/orders');
 const Ticket = require('../repositories/tickets');
 
-const customerRoutes = passport => {
-    router.use(passport.authenticate('customer', {session: false}));
+const router = new Router();
 
-    router.use('/:id', User.scopeRequest('customer'));
+router.use(passport.authenticate('customer', { session: false }));
 
-    router.get('/:id', User.showOne);
+router.use('/:id', User.scopeRequest('customer'));
 
-    router.patch('/:id', User.scopeRequest('customer', true), User.update);
+router.get('/:id', User.showOne);
 
-    router.delete('/:id', User.delete);
+router.patch('/:id', User.scopeRequest('customer', true), User.update);
 
-    router.post('/:id/orders', Order.create);
+router.delete('/:id', User.delete);
 
-    router.post('/:id/tickets', Ticket.create);
+router.post('/:id/orders', Order.create);
 
-    router.get('/:id/tickets', Ticket.showAllById);
+router.post('/:id/tickets', Ticket.create);
 
-    router.use('/:id/tickets/:ticketId', Ticket.scopeRequestByCreator);
+router.get('/:id/tickets', Ticket.showAllById);
 
-    router.get('/:id/tickets/:ticketId', Ticket.showOne);
+router.use('/:id/tickets/:ticketId', Ticket.scopeRequestByCreator);
 
-    router.get('/:id/tickets/:ticketId/messages', Ticket.showMessages);
+router.get('/:id/tickets/:ticketId', Ticket.showOne);
 
-    router.post('/:id/tickets/:ticketId/messages', Ticket.createMessage);
+router.get('/:id/tickets/:ticketId/messages', Ticket.showMessages);
 
-    return router;
-};
+router.post('/:id/tickets/:ticketId/messages', Ticket.createMessage);
 
-module.exports = customerRoutes;
+module.exports = router;

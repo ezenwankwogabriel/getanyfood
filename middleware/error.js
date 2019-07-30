@@ -1,7 +1,7 @@
 const logger = require('../startup/logger');
 const { debug } = require('../utils');
 
-module.exports = (err, req, res) => {
+module.exports = (err, req, res, next) => {
   const env = req.app.get('env') === 'development';
   let errObject;
   if (env && env.errors) {

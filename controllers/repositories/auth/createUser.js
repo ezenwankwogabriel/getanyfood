@@ -1,10 +1,13 @@
 const User = require('../../../models/user/index');
-const encryptPassword = require('../../../utils/encryptPassword');
-
 
 class CreateUser {
   constructor({
-    fullName, businessAddress, emailAddress, phoneNumber, password, userType,
+    fullName,
+    businessAddress,
+    emailAddress,
+    phoneNumber,
+    password,
+    userType,
   }) {
     this.fullName = fullName;
     this.businessAddress = businessAddress;
@@ -21,8 +24,12 @@ class CreateUser {
 
   async create() {
     const userType = this.types[this.userType];
-    if (userType) { return this[userType](); }
-    throw new Error('Invalid User Type Provided, Allowed userType: [super_admin, merchant, customer]');
+    if (userType) {
+      return this[userType]();
+    }
+    throw new Error(
+      'Invalid User Type Provided, Allowed userType: [super_admin, merchant, customer]',
+    );
   }
 
   async createMerchant() {
@@ -32,7 +39,7 @@ class CreateUser {
         businessAddress: this.businessAddress,
         emailAddress: this.emailAddress,
         phoneNumber: this.phoneNumber,
-        password: encryptPassword(this.password),
+        password: this.password,
         userType: this.userType,
         isAdmin: true,
       });
@@ -47,7 +54,7 @@ class CreateUser {
     try {
       const admin = new User({
         emailAddress: this.emailAddress,
-        password: encryptPassword(this.password),
+        password: this.password,
         userType: this.userType,
         isAdmin: true,
       });
@@ -64,7 +71,7 @@ class CreateUser {
         fullName: this.fullName,
         emailAddress: this.emailAddress,
         phoneNumber: this.phoneNumber,
-        password: encryptPassword(this.password),
+        password: this.password,
         userType: this.userType,
         isAdmin: true,
       });
