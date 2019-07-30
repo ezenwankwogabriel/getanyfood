@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
-const { ObjectId } = mongoose.Schema.Types;
+const { ObjectId } = Schema.Types;
 const mongoosePaginate = require('mongoose-paginate');
 
 const orderSchema = new Schema({
@@ -21,5 +21,7 @@ const orderSchema = new Schema({
   createdAt: { type: Date, default: Date.now, required: true },
   updatedAt: { type: Date },
 });
+
+orderSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Order', orderSchema);

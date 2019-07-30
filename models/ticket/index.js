@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const { ObjectId } = mongoose.Schema.Types;
 const mongoosePaginate = require('mongoose-paginate');
-const User = require('../user');
 
 const ticketSchema = new Schema({
   title: String,
@@ -32,5 +31,7 @@ const ticketSchema = new Schema({
     type: Date,
   },
 });
+
+ticketSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Ticket', ticketSchema);
