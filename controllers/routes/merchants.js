@@ -5,6 +5,7 @@ const router = new Router();
 const User = require('../repositories/users');
 const Order = require('../repositories/orders');
 const Product = require('../repositories/products');
+const Promotion = require('../repositories/promotions');
 const Ticket = require('../repositories/tickets');
 
 router.use(passport.authenticate('merchant', { session: false }));
@@ -69,6 +70,18 @@ router.use('/:id/combo-products/:productId', Product.ComboProduct.scopeRequest);
 router.get('/:id/combo-products/:productId', Product.showOne);
 
 router.put('/:id/combo-products/:productId', Product.ComboProduct.update);
+
+router.get('/:id/promotions', Promotion.showAllById);
+
+router.post('/:id/promotions', Promotion.create);
+
+router.use('/:id/promotions/:promotionId', Promotion.scopeRequest);
+
+router.get('/:id/promotions/:promotionId', Promotion.showOne);
+
+router.put('/:id/promotions/:promotionId', Promotion.update);
+
+router.delete('/:id/promotions/:promotionId', Promotion.delete);
 
 router.post('/:id/tickets', Ticket.create);
 
