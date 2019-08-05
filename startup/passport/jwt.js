@@ -2,37 +2,27 @@ const passport = require('passport');
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 
 const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme('jwt'),
   secretOrKey: process.env.secret,
 };
 
 function jwt(User) {
   const Admin = new JwtStrategy(jwtOptions, (jwtPayload, next) => {
-    User.findOne(
-      {
-        _id: jwtPayload.id,
-      },
-      (err, user) => {
-        if (err) return next(err);
-        if (!user) return next(null, false);
-        if (user.userType === 'super_admin') return next(null, user);
-        return next(null, false);
-      },
-    );
+    User.findOne({ _id: jwtPayload.id }, (err, user) => {
+      if (err) return next(err);
+      if (!user) return next(null, false);
+      if (user.userType === 'super_admin' || user.userType === 'sub_admin') return next(null, user);
+      return next(null, false);
+    });
   });
 
   const Merchant = new JwtStrategy(jwtOptions, (jwtPayload, next) => {
-    User.findOne(
-      {
-        _id: jwtPayload.id,
-      },
-      (err, user) => {
-        if (err) return next(err);
-        if (!user) return next(null, false);
-        if (user.userType === 'merchant') return next(null, user);
-        return next(null, false);
-      },
-    );
+    User.findOne({ _id: jwtPayload.id }, (err, user) => {
+      if (err) return next(err);
+      if (!user) return next(null, false);
+      if (user.userType === 'merchant') return next(null, user);
+      return next(null, false);
+    });
   });
 
   const Customer = new JwtStrategy(jwtOptions, (jwtPayload, next) => {

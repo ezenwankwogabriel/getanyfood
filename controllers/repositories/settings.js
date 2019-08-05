@@ -1,60 +1,55 @@
 const Setting = require('../../models/setting');
 
 const settingsActions = {
-    scopeRequest: async (req, res, next) => {
-        try {
-            let settings = await Setting.findOne();
+  scopeRequest: async (req, res, next) => {
+    try {
+      let settings = await Setting.findOne();
 
-            if (!settings) {
-                settings = new Setting({
-                    servicePercentage: 10,
-                    orderAcceptanceWindow: 600,
-                    deliveryCharge: 500,
-                    availableStates: ['Lagos'],
-                });
-            }
+      if (!settings) {
+        settings = new Setting({
+          servicePercentage: 10,
+          orderAcceptanceWindow: 600,
+          deliveryCharge: 500,
+          availableStates: ['Lagos'],
+        });
+      }
 
-            req.systemSettings = await settings.save();
+      req.systemSettings = await settings.save();
 
-            next();
-        } catch (err) {
-            next(err);
-        }
-    },
+      next();
+    } catch (err) {
+      next(err);
+    }
+  },
 
-    show: (req, res) => {
-        return res.success(req.systemSettings);
-    },
+  show: (req, res) => res.success(req.systemSettings),
 
-    update: async (req, res, next) => {
-        const {
-            servicePercentage,
-            orderAcceptanceWindow,
-            deliveryCharge,
-            availableStates,
-        } = req.body;
+  update: async (req, res, next) => {
+    const {
+      servicePercentage,
+      orderAcceptanceWindow,
+      deliveryCharge,
+      availableStates,
+    } = req.body;
 
-        if (servicePercentage)
-            req.systemSettings.servicePercentage = servicePercentage;
+    if (servicePercentage) { req.systemSettings.servicePercentage = servicePercentage; }
 
-        if (orderAcceptanceWindow)
-            req.systemSettings.orderAcceptanceWindow = orderAcceptanceWindow;
+    if (orderAcceptanceWindow) { req.systemSettings.orderAcceptanceWindow = orderAcceptanceWindow; }
 
-        if (deliveryCharge) req.systemSettings.deliveryCharge = deliveryCharge;
+    if (deliveryCharge) req.systemSettings.deliveryCharge = deliveryCharge;
 
-        if (availableStates)
-            req.systemSettings.availableStates = availableStates;
+    if (availableStates) { req.systemSettings.availableStates = availableStates; }
 
-        req.systemSettings.updated_time = new Date();
+    req.systemSettings.updated_time = new Date();
 
-        try {
-            const newSettings = await req.systemSettings.save();
+    try {
+      const newSettings = await req.systemSettings.save();
 
-            return res.success(newSettings);
-        } catch (err) {
-            next(err);
-        }
-    },
+      return res.success(newSettings);
+    } catch (err) {
+      next(err);
+    }
+  },
 };
 
 module.exports = settingsActions;
