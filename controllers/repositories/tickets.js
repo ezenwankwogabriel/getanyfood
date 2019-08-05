@@ -109,23 +109,17 @@ const ticketActions = {
     }
   },
 
-  showOne: (req, res) => {
-    return res.success(req.scopedTicket);
-  },
+  showOne: (req, res) => res.success(req.scopedTicket),
 
-  showMessages: (req, res) => {
-    return res.success(req.scopedTicket.messages);
-  },
+  showMessages: (req, res) => res.success(req.scopedTicket.messages),
 
   create: async (req, res, next) => {
     const { title, messages } = req.body;
-    const datedMessages = messages.map((message) => {
-      return {
-        ...message,
-        sender: req.user.id,
-        sentAt: new Date(),
-      };
-    });
+    const datedMessages = messages.map(message => ({
+      ...message,
+      sender: req.user.id,
+      sentAt: new Date(),
+    }));
 
     console.log(datedMessages);
 

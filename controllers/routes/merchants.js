@@ -7,8 +7,14 @@ const Order = require('../repositories/orders');
 const Product = require('../repositories/products');
 const Promotion = require('../repositories/promotions');
 const Ticket = require('../repositories/tickets');
+const Payment = require('../repositories/payment/merchantPayment');
 
 router.use(passport.authenticate('merchant', { session: false }));
+
+
+router.get('/payment/:isExports?', Payment.getPayment);
+
+router.post('/request-withdrawal', Payment.requestWithdrawal);
 
 router.use('/:id', User.scopeRequest('merchant'));
 
@@ -94,5 +100,6 @@ router.get('/:id/tickets/:ticketId', Ticket.showOne);
 router.get('/:id/tickets/:ticketId/messages', Ticket.showMessages);
 
 router.post('/:id/tickets/:ticketId/messages', Ticket.createMessage);
+
 
 module.exports = router;

@@ -15,14 +15,14 @@ if (!process.env.secret) {
 
 require('./startup/db')(); //start db
 require('./startup/global')(io, {host, port, dbName}); //initialize globals
-require('./startup/expressInstanceMethods')(app); //express instance methods
 require('./startup/passport')(); //initialize passport
+require('./startup/expressInstanceMethods')(app); //express instance methods
 
 require('./startup/index')(app); //startup files
 
 const server = http.listen(port, function(err) {
     if(err) {
-        $debug({err})
+        debug({err})
         process.exit(1)
     }
     debug("Started on -port " + port + ' -db: ' + dbName + ' -env: ' + envName + ' -url: ' + host);

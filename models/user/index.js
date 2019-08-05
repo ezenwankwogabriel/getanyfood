@@ -10,15 +10,17 @@ const userSchema = new Schema({
   firstName: {
     type: String,
     minlength: 3,
+    required() { return this.userType !== 'super_admin'; },
   },
   lastName: {
     type: String,
     minlength: 2,
+    required() { return this.userType !== 'super_admin'; },
   },
   businessName: {
     type: String,
     minlength: 3,
-    required: () => this.userType === 'merchant',
+    required() { return this.userType === 'merchant' },
   },
   emailAddress: {
     type: String,
@@ -30,10 +32,12 @@ const userSchema = new Schema({
     type: String,
     minlength: 11,
     maxlength: 11,
+    required() { return this.userType !== 'super_admin'; },
   },
   businessAddress: {
     type: String,
     minlength: 3,
+    required() { return this.userType === 'merchant'; },
   },
   businessCategory: String,
   businessDescription: String,
@@ -92,13 +96,14 @@ const userSchema = new Schema({
   },
 });
 
-userSchema.virtual('fullName').get(() => `${this.firstName} ${this.lastName}`);
 
-userSchema.methods.verifyPassword = function verifyPassword(providedPassword) {
+// userSchema.virtual('fullName').get(function () { `${this.firstName} ${this.lastName}`; });
+
+userSchema.methods.verifyPassword = function (providedPassword) {
   return bcrypt.compareSync(providedPassword, this.password);
 };
 
-userSchema.methods.encryptPayload = function encryptPayload() {
+userSchema.methods.encryptPayload = function () {
   const payload = {
     id: this._id,
     email: this.emailAddress,
@@ -107,10 +112,11 @@ userSchema.methods.encryptPayload = function encryptPayload() {
   return JWT.sign(payload, process.env.secret, { expiresIn: '30d' });
 };
 
-userSchema.statics.findByEmail = (emailAddress) =>
-  this.findOne({ emailAddress });
+userSchema.statics.findByEmail = function (emailAddress) {
+  return this.findOne({ emailAddress });
+};
 
-userSchema.statics.verifyAdminPassword = async (userId, adminPassword) => {
+userSchema.statics.verifyAdminPassword = async function (userId, adminPassword) {
   try {
     const adminUser = await this.findOne({ _id: userId });
     return bcrypt.compareSync(adminPassword, adminUser.password);
