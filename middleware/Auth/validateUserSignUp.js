@@ -5,12 +5,12 @@ module.exports = (req, res, next) => {
   const schema = {
     firstName: Joi.string()
       .min(3)
-      .max(20)
-      .required(),
+      .max(20),
     lastName: Joi.string()
       .min(2)
-      .max(30)
-      .required(),
+      .max(30),
+    businessAddress: Joi.string().min(3),
+    businessName: Joi.string().min(3),
     emailAddress: Joi.string()
       .email({ minDomainSegments: 2 })
       .required(),
@@ -18,7 +18,6 @@ module.exports = (req, res, next) => {
       .min(11)
       .max(11)
       .required(),
-    // phoneNumber: Joi.string().min(11).max(11).required(),
     password: Joi.string()
       .regex(/^[a-zA-Z0-9]{3,30}$/)
       .required(),

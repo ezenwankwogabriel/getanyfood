@@ -32,7 +32,7 @@ class CreateUser {
         businessAddress: this.businessAddress,
         emailAddress: this.emailAddress,
         phoneNumber: this.phoneNumber,
-        password: encryptPassword(this.password),
+        password: this.password,
         userType: this.userType,
         isAdmin: true,
       });
@@ -47,7 +47,7 @@ class CreateUser {
     try {
       const admin = new User({
         emailAddress: this.emailAddress,
-        password: encryptPassword(this.password),
+        password: this.password,
         userType: this.userType,
         isAdmin: true,
       });
@@ -64,7 +64,7 @@ class CreateUser {
         fullName: this.fullName,
         emailAddress: this.emailAddress,
         phoneNumber: this.phoneNumber,
-        password: encryptPassword(this.password),
+        password: this.password,
         userType: this.userType,
         isAdmin: true,
       });
