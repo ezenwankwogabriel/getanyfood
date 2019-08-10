@@ -97,7 +97,9 @@ const userSchema = new Schema({
 });
 
 
-// userSchema.virtual('fullName').get(function () { `${this.firstName} ${this.lastName}`; });
+userSchema.virtual('fullName').get( function () {
+    return `${this.firstName} ${this.lastName}`; 
+  });
 
 userSchema.methods.verifyPassword = function (providedPassword) {
   return bcrypt.compareSync(providedPassword, this.password);
