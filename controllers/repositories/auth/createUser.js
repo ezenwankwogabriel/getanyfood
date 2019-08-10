@@ -2,15 +2,19 @@ const User = require('../../../models/user/index');
 
 class CreateUser {
   constructor({
-    fullName,
+    firstName,
+    lastName,
     businessAddress,
+    businessName,
     emailAddress,
     phoneNumber,
     password,
     userType,
   }) {
-    this.fullName = fullName;
+    this.firstName = firstName;
+    this.lastName = lastName;
     this.businessAddress = businessAddress;
+    this.businessName = businessName;
     this.emailAddress = emailAddress;
     this.phoneNumber = phoneNumber;
     this.password = password;
@@ -35,8 +39,10 @@ class CreateUser {
   async createMerchant() {
     try {
       const merchant = new User({
-        fullName: this.fullName,
+        firstName: this.firstName,
+        lastName: this.lastName,
         businessAddress: this.businessAddress,
+        businessName: this.businessName,
         emailAddress: this.emailAddress,
         phoneNumber: this.phoneNumber,
         password: this.password,
@@ -68,7 +74,8 @@ class CreateUser {
   async createCustomer() {
     try {
       const customer = new User({
-        fullName: this.fullName,
+        firstName: this.firstName,
+        lastName: this.lastName,
         emailAddress: this.emailAddress,
         phoneNumber: this.phoneNumber,
         password: this.password,
