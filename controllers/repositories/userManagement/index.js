@@ -46,13 +46,25 @@ module.exports = class CreateSubUser {
     let { _id, adminId } = req.user;
     adminId = adminId || _id;
     const query = { adminId };
-    switch (req.query) {
-      case 'firstName': query.firstName = req.query.firstName; break;
-      case 'lastName': query.lastName = req.query.lastName; break;
-      case 'emailAddress': query.emailAddress = req.query.emailAddress; break;
-      default: break;
-    }
+      if (req.query.firstName)
+        query.firstName = req.query.firstName;
+      if (req.query.lastName)
+        query.lastName = req.query.lastName;
+      if (req.query.emailAddress)
+        query.emailAddress = req.query.emailAddress;
 
+    const users = await utils.PaginateRequest(req, query, UserModel);
+    res.success(users);
+  }
+
+  static async allMerchant(req,res) {
+    let query = {userType: 'merchant'};
+      if (req.query.company) 
+        query.businessName = req.query.company;
+      if (req.query.status) 
+        query.status = req.query.status === 'active'? 1 : 0;
+      if (req.query.emailAddress) 
+        query.emailAddress = req.query.emailAddress;
     const users = await utils.PaginateRequest(req, query, UserModel);
     res.success(users);
   }
