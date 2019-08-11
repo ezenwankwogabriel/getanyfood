@@ -1,3 +1,5 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable func-names */
 const bcrypt = require('bcrypt-nodejs');
 const JWT = require('jsonwebtoken');
 const mongoose = require('mongoose');
@@ -26,9 +28,7 @@ const userSchema = new Schema({
   businessName: {
     type: String,
     minlength: 3,
-    required() {
-      return this.userType === 'merchant';
-    },
+    required() { return this.userType === 'merchant'; },
   },
   emailAddress: {
     type: String,

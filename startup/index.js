@@ -11,6 +11,7 @@ const swagger = require('./swagger');
 const routes = require('./routes');
 const error = require('../middleware/error');
 
+// eslint-disable-next-line consistent-return
 function startup(app) {
   if (!process.env.secret) { return process.exit(1); }
 

@@ -33,24 +33,8 @@ module.exports = class Payment {
     const requests = await utils.PaginateRequest(req, query, PaymentModel);
 
     if (isExports) {
-      const fields = [
-        'recipient',
-        'amount',
-        'transactionNumber',
-        'bankName',
-        'accountNumber',
-        'status',
-        'createdAt',
-      ];
-      const fieldNames = [
-        'Merchant',
-        'Amount',
-        'Transaction Number',
-        'Bank Name',
-        'Account Number',
-        'Status',
-        'Date Created',
-      ];
+      const fields = ['recipient', 'amount', 'transactionNumber', 'bankName', 'accountNumber', 'status', 'createdAt'];
+      const fieldNames = ['Merchant', 'Amount', 'Transaction Number', 'Bank Name', 'Account Number', 'Status', 'Date Created'];
       const csv = await utils.ExportCsv(fields, fieldNames, requests.docs);
       res.attachment('Payment Request.csv');
       return res.end(csv);
