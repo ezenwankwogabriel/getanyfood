@@ -35,7 +35,7 @@ module.exports = class Payment {
   static async markAsPaid(req, res) {
     let { paymentIds } = req.body;
     if (typeof paymentIds === 'string') paymentIds = [paymentIds];
-    if (Array.isArray(paymentIds)) paymentIds = false;
+    else if (Array.isArray(paymentIds)) paymentIds = false;
     if (!paymentIds) { return res.badRequest('Payment Id is required'); }
     await PaymentModel.update({ _id: { $in: paymentIds } }, { $set: { status: true } });
     return res.success('Request marked as Paid');

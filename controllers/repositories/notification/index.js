@@ -1,26 +1,28 @@
 const debug = require('debug')('app:startup');
-
 const { socketIo } = require('../../../app');
 const NotificationModel = require('../../../models/notification');
 const utils = require('../../../utils');
 
-
 async function fetchNotification({ limit, page, adminId }) {
-  const req = {
-    query: {
-      limit: 10,
-      page: 1,
-    },
-  };
-  const query = {
-    populate: { path: 'notificationFrom', select: 'profileThumbnail' },
-  };
-  if (limit) req.query.limit = limit;
-  if (page) req.query.page = page;
-  if (!adminId) return false;
-  query.adminId = adminId;
-  const notifications = await utils.PaginateRequest(req, query, NotificationModel);
-  return notifications;
+  try {
+    const req = {
+      query: {
+        limit: 10,
+        page: 1,
+      },
+    };
+    const query = {
+      populate: { path: 'notificationFrom', select: 'profileThumbnail' },
+    };
+    if (limit) req.query.limit = limit;
+    if (page) req.query.page = page;
+    if (!adminId) return false;
+    query.adminId = adminId;
+    const notifications = await utils.PaginateRequest(req, query, NotificationModel);
+    return notifications;
+  } catch (ex) {
+    return debug(ex);
+  }
 }
 
 function fetchNotificationController(socket, emitType) {

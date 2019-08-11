@@ -134,7 +134,7 @@ const userSchema = new Schema({
   },
 });
 
-userSchema.virtual('fullName').get(function getFullName() {
+userSchema.virtual('fullName').get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
 userSchema.methods.getMerchantRating = async function getMerchantRating() {

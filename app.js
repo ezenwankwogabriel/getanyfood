@@ -4,9 +4,8 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const debug = require('debug')('app:startup');
-const {
-  dbName, port, host,
-} = require('./utils');
+const { dbName, port, host } = require('./utils');
+
 require('express-async-errors');
 require('dotenv').config();
 
