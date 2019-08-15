@@ -1,8 +1,12 @@
+/* eslint-disable consistent-return */
+const { DateTime } = require('luxon');
 const User = require('../../models/user');
 const ProductCategory = require('../../models/product/category');
 const Product = require('../../models/product');
+const Order = require('../../models/order');
+const collate = require('../../utils/collate.js');
 
-productActions = {
+const productActions = {
   Category: {
     scopeRequest: async (req, res, next) => {
       try {
@@ -16,9 +20,7 @@ productActions = {
         });
 
         if (!category) {
-          return res
-            .status(404)
-            .send('This product category does not exist');
+          return res.status(404).send('This product category does not exist');
         }
 
         req.scopedCategory = category;
@@ -73,9 +75,7 @@ productActions = {
       req.scopedProduct.subProducts.push(req.body);
       try {
         const product = await req.scopedProduct.save();
-        return res.success(
-          product.subProducts[product.subProducts.length - 1],
-        );
+        return res.success(product.subProducts[product.subProducts.length - 1]);
       } catch (err) {
         next(err);
       }
@@ -95,7 +95,9 @@ productActions = {
       if (name) subProduct.name = name;
       if (description) subProduct.description = description;
       if (priceDifference) subProduct.priceDifference = priceDifference;
-      if (unitsAvailablePerDay) { subProduct.unitsAvailablePerDay = unitsAvailablePerDay; }
+      if (unitsAvailablePerDay) {
+        subProduct.unitsAvailablePerDay = unitsAvailablePerDay;
+      }
       subProduct.updatedAt = new Date();
 
       req.scopedProduct.updatedAt = subProduct.updatedAt;
@@ -134,7 +136,9 @@ productActions = {
             model: ProductCategory,
           });
 
-        if (!product) { return res.status(404).send('This product does not exist'); }
+        if (!product) {
+          return res.status(404).send('This product does not exist');
+        }
 
         req.scopedProduct = product;
         next();
@@ -153,9 +157,7 @@ productActions = {
       try {
         const savedProduct = await comboProduct.save();
 
-        const fullProduct = await Product.findOne(
-          savedProduct,
-        ).populate({
+        const fullProduct = await Product.findOne(savedProduct).populate({
           path: 'merchant',
           model: User,
           select: '-password -deleted',
@@ -174,9 +176,7 @@ productActions = {
           updatedAt: new Date(),
         });
 
-        const product = await Product.findById(
-          req.params.productId,
-        ).populate({
+        const product = await Product.findById(req.params.productId).populate({
           path: 'merchant',
           model: User,
           select: '-password -deleted',
@@ -205,7 +205,9 @@ productActions = {
           model: ProductCategory,
         });
 
-      if (!product) { return res.status(404).send('This product does not exist'); }
+      if (!product) {
+        return res.status(404).send('This product does not exist');
+      }
 
       req.scopedProduct = product;
       next();
@@ -252,6 +254,145 @@ productActions = {
         });
 
       return res.success(product);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async showStats(req, res, next) {
+    const { productType } = req.query;
+    const queryOptions = {
+      merchant: req.params.id,
+    };
+
+    if (productType) {
+      const isValidType = ['single', 'combo'].includes(productType);
+      if (!isValidType) {
+        return res.badRequest('Invalid product type');
+      }
+      queryOptions.type = productType;
+    }
+
+    try {
+      const products = await Product.find(queryOptions, '_id name type');
+
+      const stats = await Promise.all(
+        products.map(async (product) => {
+          const orders = await Order.find({
+            'items.product': { $in: [product.id] },
+          });
+
+          const unitsOrdered = orders.reduce(
+            (total, { items }) => total
+              + items
+                .filter(item => String(item.product) === String(product.id))
+                .reduce(
+                  (unitsInOrder, { count = 1 }) => unitsInOrder + count,
+                  0,
+                ),
+            0,
+          );
+
+          return {
+            // eslint-disable-next-line no-underscore-dangle
+            ...product._doc,
+            unitsOrdered,
+          };
+        }),
+      );
+
+      res.success(stats);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async showStat(req, res, next) {
+    const { productId } = req.params;
+    const [product, orders] = await Promise.all([
+      Product.findById(productId),
+      Order.find(
+        { 'items.product': { $in: [productId] }, 'payment.status': 'success' },
+        null,
+        {
+          sort: { $natural: 1 },
+        },
+      ),
+    ]);
+
+    try {
+      const data = [];
+      orders.map(order => order.items
+        .filter(item => String(item.product) === String(product.id))
+        .map(async ({ subProduct, count = 1 }) => {
+          let itemPrice;
+
+          if (subProduct) {
+            const subProductPrice = product.price
+                + product.subProducts.id(subProduct).priceDifference;
+            itemPrice = subProductPrice * count;
+          } else {
+            itemPrice = product.price * count;
+          }
+
+          const { month, year } = DateTime.fromJSDate(order.createdAt);
+
+          data.push({
+            month,
+            year,
+            period: `${year}${month}`,
+            amount: itemPrice,
+          });
+        }));
+
+      const revenueStats = collate(data);
+
+      res.success({
+        product,
+        stats: revenueStats,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async showStock(req, res, next) {
+    try {
+      const products = await Product.find({
+        merchant: req.params.id,
+      });
+
+      const stats = await Promise.all(
+        products.map(async (product) => {
+          const orders = await Order.find({
+            'items.product': product.id,
+            createdAt: {
+              $gte: DateTime.local()
+                .startOf('day')
+                .toJSDate(),
+              $lte: DateTime.local()
+                .endOf('day')
+                .toJSDate(),
+            },
+          });
+
+          const totalAvailable = product.unitsAvailablePerDay;
+
+          const totalSold = orders
+            .map(order => order.items
+              .filter(item => String(item.product) === String(product.id))
+              .reduce((total, { count = 1 }) => total + count, 0))
+            .reduce((total, count = 1) => total + count, 0);
+
+          return {
+            product,
+            totalAvailable,
+            totalSold,
+          };
+        }),
+      );
+
+      res.success(stats);
     } catch (err) {
       next(err);
     }

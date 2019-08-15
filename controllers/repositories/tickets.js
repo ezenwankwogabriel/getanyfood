@@ -1,5 +1,6 @@
 const User = require('../../models/user');
 const Ticket = require('../../models/ticket');
+const utils = require('../../utils');
 
 const ticketActions = {
   scopeRequest: async (req, res, next) => {
@@ -54,27 +55,22 @@ const ticketActions = {
   },
 
   showAll: async (req, res, next) => {
-    try {
-      const tickets = await Ticket.paginate(
-        {},
+    const queryOptions = {
+      populate: [
         {
-          limit: req.query.limit || 20,
-          offset: req.query.offset || 0,
-          page: req.query.page || 1,
-          populate: [
-            {
-              path: 'createdBy',
-              model: User,
-              select: '-password -deleted',
-            },
-            {
-              path: 'messages.sender',
-              model: User,
-              select: '-password -deleted',
-            },
-          ],
+          path: 'createdBy',
+          model: User,
+          select: '-password -deleted',
         },
-      );
+        {
+          path: 'messages.sender',
+          model: User,
+          select: '-password -deleted',
+        },
+      ],
+    };
+    try {
+      const tickets = await utils.PaginateRequest(req, queryOptions, Ticket);
       return res.success(tickets);
     } catch (err) {
       next(err);
@@ -82,27 +78,23 @@ const ticketActions = {
   },
 
   showAllById: async (req, res, next) => {
-    try {
-      const tickets = await Ticket.paginate(
-        { createdBy: req.params.id },
+    const queryOptions = {
+      createdBy: req.params.id,
+      populate: [
         {
-          limit: req.query.limit || 20,
-          offset: req.query.offset || 0,
-          page: req.query.page || 1,
-          populate: [
-            {
-              path: 'createdBy',
-              model: User,
-              select: '-password -deleted',
-            },
-            {
-              path: 'messages.sender',
-              model: User,
-              select: '-password -deleted',
-            },
-          ],
+          path: 'createdBy',
+          model: User,
+          select: '-password -deleted',
         },
-      );
+        {
+          path: 'messages.sender',
+          model: User,
+          select: '-password -deleted',
+        },
+      ],
+    };
+    try {
+      const tickets = await utils.PaginateRequest(req, queryOptions, Ticket);
       return res.success(tickets);
     } catch (err) {
       next(err);
@@ -120,8 +112,6 @@ const ticketActions = {
       sender: req.user.id,
       sentAt: new Date(),
     }));
-
-    console.log(datedMessages);
 
     const ticket = new Ticket({
       title,

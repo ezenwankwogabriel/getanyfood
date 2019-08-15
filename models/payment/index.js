@@ -4,14 +4,17 @@ const mongoosePaginate = require('mongoose-paginate');
 const { Schema } = mongoose;
 const { ObjectId } = Schema.Types;
 
-const paymentSchema = new Schema({
-  recipient: { type: ObjectId, ref: 'User', required: true },
-  amount: { type: String, required: true },
-  transactionNumber: { type: String, required: true },
-  bankName: { type: String, required: true },
-  accountNumber: { type: Number, required: true },
-  status: { type: Boolean, default: false },
-}, { timestamps: { createdAt: 'createdAt' } });
+const paymentSchema = new Schema(
+  {
+    recipient: { type: ObjectId, ref: 'User', required: true },
+    amount: { type: String, required: true },
+    transactionNumber: { type: String, required: true },
+    bankName: { type: String, required: true },
+    accountNumber: { type: Number, required: true },
+    status: { type: Boolean, default: false },
+  },
+  { timestamps: true },
+);
 
 paymentSchema.plugin(mongoosePaginate);
 

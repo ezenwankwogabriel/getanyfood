@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const { ObjectId } = Schema.Types;
 const mongoosePaginate = require('mongoose-paginate');
-const ProductCategory = require('./category');
+const mongooseTextSearch = require('mongoose-text-search');
 
 const subProductSchema = new Schema(
   {
@@ -25,7 +25,7 @@ const productSchema = new Schema({
   image: { type: String, required: true },
   price: {
     type: Number,
-    required: () => this.type === 'single',
+    required: true,
   },
   calories: Number,
   discount: { type: Number, min: 0, max: 100 },
@@ -42,12 +42,15 @@ const productSchema = new Schema({
       product: {
         type: ObjectId,
         ref: 'Product',
-        required: () => this.type === 'combo',
+        required() {
+          return this.type === 'combo';
+        },
       },
       subProduct: {
         type: ObjectId,
         ref: 'Product.subProducts',
       },
+      count: { type: Number, min: 1, default: 1 },
     },
   ],
   unitsAvailablePerDay: Number,
@@ -55,5 +58,11 @@ const productSchema = new Schema({
   createdAt: { type: Date, default: Date.now, required: true },
   updatedAt: { type: Date },
 });
+
+productSchema.index({ name: 'text', 'subProduct.name': 'text' });
+
+productSchema.plugin(mongoosePaginate);
+
+productSchema.plugin(mongooseTextSearch);
 
 module.exports = mongoose.model('Product', productSchema);

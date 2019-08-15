@@ -7,6 +7,7 @@ const EncryptPassword = require('./encryptPassword');
 const PaginateRequest = require('./paginateRequest');
 const UserSubType = require('./userSubType');
 const ExportCsv = require('./exportCsv');
+const getPriceTotal = require('./getPriceTotal');
 
 module.exports = {
   port: config.get('port'),
@@ -22,4 +23,5 @@ module.exports = {
   UserSubType,
   AuditTrail,
   ExportCsv,
+  getPriceTotal,
 };

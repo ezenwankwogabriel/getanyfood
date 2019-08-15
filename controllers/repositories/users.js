@@ -22,25 +22,16 @@ const userActions = {
     }
   },
 
-  showOne: (req, res) => res.success(req.scopedUser),
+  async showOne(req, res) {
+    if (req.scopedUser.userType === 'merchant') {
+      req.scopedUser._doc.rating = await req.scopedUser.getMerchantRating();
+    }
 
-  update: async (req, res, next) => {
-    const {
-      firstName,
-      lastName,
-      profilePhoto,
-      phoneNumber,
-      oldPassword,
-      password,
-    } = req.body;
+    res.success(req.scopedUser);
+  },
 
-    if (firstName) req.scopedUser.firstName = firstName;
-
-    if (lastName) req.scopedUser.lastName = lastName;
-
-    if (profilePhoto) req.scopedUser.profilePhoto = profilePhoto;
-
-    if (phoneNumber) req.scopedUser.phoneNumber = phoneNumber;
+  async update(req, res, next) {
+    const { oldPassword, password } = req.body;
 
     if (password && oldPassword) {
       if (req.scopedUser.id !== req.user.id) {
@@ -49,60 +40,24 @@ const userActions = {
       if (!req.scopedUser.verifyPassword(oldPassword)) {
         return res.badRequest('Enter your current password correctly');
       }
-      req.scopedUser.password = password;
     }
 
-    req.scopedUser.updated_time = new Date();
-
     try {
-      const updatedUser = await req.scopedUser.save();
+      const updatedUser = await User.findByIdAndUpdate(
+        req.scopedUser.id,
+        {
+          ...req.body,
+          updated_time: new Date(),
+        },
+        { new: true, select: '-password -deleted' },
+      );
       return res.success(updatedUser);
     } catch (err) {
       next(err);
     }
   },
 
-  updateMerchant: async (req, res, next) => {
-    const {
-      firstName,
-      lastName,
-      businessName,
-      phoneNumber,
-      businessAddress,
-      businessDescription,
-      businessImage,
-      workingHours,
-      businessType,
-      businessCategory,
-      delivery,
-      location,
-      bankDetails,
-    } = req.body;
-
-    try {
-      await req.scopedUser.update({
-        firstName,
-        lastName,
-        businessName,
-        phoneNumber,
-        businessAddress,
-        businessDescription,
-        businessImage,
-        workingHours,
-        businessType,
-        businessCategory,
-        delivery,
-        location,
-        bankDetails,
-      });
-
-      res.success(req.scopedUser);
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  delete: async (req, res, next) => {
+  async delete(req, res, next) {
     const { password } = req.body;
 
     try {

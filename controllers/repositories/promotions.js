@@ -2,6 +2,7 @@ const { DateTime } = require('luxon');
 const Promotion = require('../../models/promotion');
 const Product = require('../../models/product');
 const User = require('../../models/user');
+const utils = require('../../utils');
 
 const promotionActions = {
   scopeRequest: async (req, res, next) => {
@@ -30,25 +31,25 @@ const promotionActions = {
   showOne: (req, res) => res.success(req.scopedPromotion),
 
   showAllById: async (req, res, next) => {
-    try {
-      const promotions = await Promotion.paginate(
-        { merchant: req.params.id },
+    const queryOptions = {
+      merchant: req.params.id,
+      populate: [
         {
-          limit: req.query.limit || 20,
-          offset: req.query.offset || 0,
-          page: req.query.page || 1,
-          populate: [
-            {
-              path: 'merchant',
-              model: User,
-              select: '-password -deleted',
-            },
-            {
-              path: 'item.product',
-              model: Product,
-            },
-          ],
+          path: 'merchant',
+          model: User,
+          select: '-password -deleted',
         },
+        {
+          path: 'item.product',
+          model: Product,
+        },
+      ],
+    };
+    try {
+      const promotions = await utils.PaginateRequest(
+        req,
+        queryOptions,
+        Promotion,
       );
       res.success(promotions);
     } catch (err) {

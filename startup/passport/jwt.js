@@ -2,7 +2,7 @@ const passport = require('passport');
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 
 const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme('jwt'),
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: process.env.secret,
 };
 
@@ -11,7 +11,8 @@ function jwt(User) {
     User.findOne({ _id: jwtPayload.id }, (err, user) => {
       if (err) return next(err);
       if (!user) return next(null, false);
-      if (user.userType === 'super_admin' || user.userType === 'sub_admin') return next(null, user);
+      if (user.userType === 'super_admin' || user.userType === 'sub_admin')
+        return next(null, user);
       return next(null, false);
     });
   });
