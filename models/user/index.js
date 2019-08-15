@@ -137,6 +137,12 @@ const userSchema = new Schema({
 userSchema.virtual('fullName').get(function getFullName() {
   return `${this.firstName} ${this.lastName}`;
 });
+userSchema.methods.getMerchantRating = async function getMerchantRating() {
+  const orders = await Order.find({
+    // eslint-disable-next-line no-underscore-dangle
+    merchant: this._id,
+    status: 'completed',
+  });
 
 userSchema.methods.getMerchantRating = async function getMerchantRating() {
   const orders = await Order.find({
