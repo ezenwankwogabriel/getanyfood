@@ -7,15 +7,16 @@
 async function paginateRequest(req, query, Model) {
   try {
     const populate = query.populate || [];
-    const sort = query.sort || { $natural: -1 };
-    const select = query.select || ['password'];
     const dbQuery = { ...query };
 
     delete dbQuery.populate;
-    delete dbQuery.sort;
-    delete dbQuery.select;
+    const sort = { $natural: -1 };
 
-    const paginateOptions = { select, sort, populate };
+    const paginateOptions = {
+      select: { password: 0 },
+      sort,
+      populate,
+    };
 
     const { page, limit, offset } = req.query;
     paginateOptions.limit = limit && Number(limit) > 0 ? Number(limit) : 20;
