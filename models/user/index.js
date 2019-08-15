@@ -144,13 +144,6 @@ userSchema.methods.getMerchantRating = async function getMerchantRating() {
     status: 'completed',
   });
 
-userSchema.methods.getMerchantRating = async function getMerchantRating() {
-  const orders = await Order.find({
-    // eslint-disable-next-line no-underscore-dangle
-    merchant: this._id,
-    rating: { $exists: true },
-  });
-
   if (!orders.length) {
     return 0;
   }
