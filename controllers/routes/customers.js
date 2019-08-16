@@ -18,6 +18,22 @@ router.delete('/:id', User.delete);
 
 router.post('/:id/orders', Order.create);
 
+router.get('/:id/orders', Order.showAllByCustomer);
+
+router.get('/:id/orders/:orderId', Order.scopeRequest, Order.showOne);
+
+router.post(
+  '/:id/orders/:orderId/review',
+  Order.scopeRequest,
+  Order.reviewOrder,
+);
+
+router.put(
+  '/:id/orders/:orderId/review',
+  Order.scopeRequest,
+  Order.reviewOrder,
+);
+
 router.post('/:id/tickets', Ticket.create);
 
 router.get('/:id/tickets', Ticket.showAllById);

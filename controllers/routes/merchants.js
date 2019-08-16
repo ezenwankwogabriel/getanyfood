@@ -1,7 +1,5 @@
 const { Router } = require('express');
 const passport = require('passport');
-
-const router = new Router();
 const User = require('../repositories/users');
 const Order = require('../repositories/orders');
 const Product = require('../repositories/products');
@@ -9,8 +7,9 @@ const Promotion = require('../repositories/promotions');
 const Ticket = require('../repositories/tickets');
 const Payment = require('../repositories/payment/merchantPayment');
 
-router.use(passport.authenticate('merchant', { session: false }));
+const router = new Router();
 
+router.use(passport.authenticate('merchant', { session: false }));
 
 router.get('/payment/:isExports?', Payment.getPayment);
 
@@ -20,9 +19,19 @@ router.use('/:id', User.scopeRequest('merchant'));
 
 router.get('/:id', User.showOne);
 
-router.put('/:id', User.updateMerchant);
+router.put('/:id', User.update);
 
-router.get('/:id/orders', Order.showAllById);
+router.get('/:id/orders/comments', Order.showComments);
+
+router.get('/:id/customers/ranking', Order.showCustomerRanking);
+
+router.get('/:id/products/stock', Product.showStock);
+
+router.get('/:id/products/stats', Product.showStats);
+
+router.get('/:id/products/:productId/stats', Product.showStat);
+
+router.get('/:id/orders', Order.showAllByMerchant);
 
 router.use('/:id/orders/:orderId', Order.scopeRequest);
 
@@ -100,6 +109,5 @@ router.get('/:id/tickets/:ticketId', Ticket.showOne);
 router.get('/:id/tickets/:ticketId/messages', Ticket.showMessages);
 
 router.post('/:id/tickets/:ticketId/messages', Ticket.createMessage);
-
 
 module.exports = router;

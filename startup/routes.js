@@ -7,6 +7,7 @@ const settingsRoutes = require('../controllers/routes/settings');
 const ticketsRoutes = require('../controllers/routes/tickets');
 const merchantsRoutes = require('../controllers/routes/merchants');
 const customersRoutes = require('../controllers/routes/customers');
+const Order = require('../controllers/repositories/orders');
 
 function routeApis(app) {
   app.use('/', Auth);
@@ -21,6 +22,7 @@ function routeApis(app) {
   app.use('/tickets', ticketsRoutes);
   app.use('/merchants', merchantsRoutes);
   app.use('/customers', customersRoutes);
+  app.post('/payment-events', Order.handlePaystackEvents);
 }
 
 module.exports = routeApis;

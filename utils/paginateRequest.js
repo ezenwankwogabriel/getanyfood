@@ -1,4 +1,3 @@
-
 /**
  *
  * @param {Object} req request object
@@ -7,16 +6,26 @@
  */
 async function paginateRequest(req, query, Model) {
   try {
-    query.populate = query.populate || [];
+    const populate = query.populate || [];
     const dbQuery = { ...query };
     delete dbQuery.populate;
-    let { page, limit } = req.query;
-    page = page && Number(page) > 0 ? Number(page) : 1;
-    limit = limit && Number(limit) > 0 ? Number(limit) : 10;
     const sort = { $natural: -1 };
-    return await Model.paginate(dbQuery, {
-      select: { password: 0 }, sort, page, limit, populate: [...query.populate],
-    });
+
+    const paginateOptions = {
+      select: { password: 0 },
+      sort,
+      populate,
+    };
+
+    const { page, limit, offset } = req.query;
+    paginateOptions.limit = limit && Number(limit) > 0 ? Number(limit) : 20;
+    if (page && Number(page) > 0) {
+      paginateOptions.page = Number(page);
+    }
+    if (!page && offset && Number(offset)) {
+      paginateOptions.offset = Number(offset);
+    }
+    return await Model.paginate(dbQuery, paginateOptions);
   } catch (ex) {
     throw new Error(ex);
   }
