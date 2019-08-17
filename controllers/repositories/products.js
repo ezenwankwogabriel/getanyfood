@@ -24,9 +24,9 @@ const productActions = {
         }
 
         req.scopedCategory = category;
-        next();
+        return next();
       } catch (err) {
-        next(err);
+        return next(err);
       }
     },
 
@@ -41,7 +41,7 @@ const productActions = {
 
         return res.success(savedCategory);
       } catch (err) {
-        next(err);
+        return next(err);
       }
     },
 
@@ -65,7 +65,7 @@ const productActions = {
 
         return res.success(newCategory);
       } catch (err) {
-        next(err);
+        return next(err);
       }
     },
   },
@@ -77,7 +77,7 @@ const productActions = {
         const product = await req.scopedProduct.save();
         return res.success(product.subProducts[product.subProducts.length - 1]);
       } catch (err) {
-        next(err);
+        return next(err);
       }
     },
 
@@ -109,7 +109,7 @@ const productActions = {
           updatedProduct.subProducts.id(req.params.subProductId),
         );
       } catch (err) {
-        next(err);
+        return next(err);
       }
     },
   },
@@ -141,9 +141,9 @@ const productActions = {
         }
 
         req.scopedProduct = product;
-        next();
+        return next();
       } catch (err) {
-        next(err);
+        return next(err);
       }
     },
 
@@ -165,7 +165,7 @@ const productActions = {
 
         return res.success(fullProduct);
       } catch (err) {
-        next(err);
+        return next(err);
       }
     },
 
@@ -184,7 +184,7 @@ const productActions = {
 
         return res.success(product);
       } catch (err) {
-        next(err);
+        return next(err);
       }
     },
   },
@@ -210,9 +210,9 @@ const productActions = {
       }
 
       req.scopedProduct = product;
-      next();
+      return next();
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 
@@ -229,7 +229,7 @@ const productActions = {
 
       return res.success(savedProduct);
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 
@@ -255,7 +255,7 @@ const productActions = {
 
       return res.success(product);
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 

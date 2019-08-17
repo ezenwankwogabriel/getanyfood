@@ -1,8 +1,9 @@
+const debug = require('debug')('app:startup');
+
 const { socketIo } = require('../../../app');
 const NotificationModel = require('../../../models/notification');
 const utils = require('../../../utils');
 
-const { debug } = require('../../../utils');
 
 async function fetchNotification({ limit, page, adminId }) {
   const req = {

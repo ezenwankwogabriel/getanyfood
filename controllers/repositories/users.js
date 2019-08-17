@@ -16,9 +16,9 @@ const userActions = {
 
       req.scopedUser = user;
 
-      next();
+      return next();
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 
@@ -53,7 +53,7 @@ const userActions = {
       );
       return res.success(updatedUser);
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 

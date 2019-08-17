@@ -16,19 +16,9 @@ module.exports = class Payment {
         $lte: new Date(endDate),
       };
     }
-    switch (req.query) {
-      case 'merchant':
-        query.merchant = merchant;
-        break;
-      case 'bank':
-        query.bank = bank;
-        break;
-      case 'txNumber':
-        query.transactionNumber = txNumber;
-        break;
-      default:
-        break;
-    }
+    if (req.query.merchant) query.merchant = merchant;
+    if (req.query.bank) query.bank = bank;
+    if (req.query.txNumber) query.transactionNumber = txNumber;
     query.populate = ['merchant'];
     const requests = await utils.PaginateRequest(req, query, PaymentModel);
 
@@ -44,18 +34,10 @@ module.exports = class Payment {
 
   static async markAsPaid(req, res) {
     let { paymentIds } = req.body;
-    paymentIds = typeof paymentIds === 'string'
-      ? [paymentIds]
-      : Array.isArray(paymentIds)
-        ? paymentIds
-        : false;
-    if (!paymentIds) {
-      return res.badRequest('Payment Id is required');
-    }
-    await PaymentModel.update(
-      { _id: { $in: paymentIds } },
-      { $set: { status: true } },
-    );
+    if (typeof paymentIds === 'string') paymentIds = [paymentIds];
+    if (Array.isArray(paymentIds)) paymentIds = false;
+    if (!paymentIds) { return res.badRequest('Payment Id is required'); }
+    await PaymentModel.update({ _id: { $in: paymentIds } }, { $set: { status: true } });
     return res.success('Request marked as Paid');
   }
 

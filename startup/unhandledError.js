@@ -1,5 +1,5 @@
+const debug = require('debug')('debug');
 const logger = require('./logger');
-const { debug } = require('../utils');
 
 function unhandledError() {
   process

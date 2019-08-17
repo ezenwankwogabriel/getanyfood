@@ -19,7 +19,7 @@ module.exports = (req, res, next) => {
       .max(11)
       .required(),
     password: Joi.string()
-      .regex(/^[a-zA-Z0-9]{3,30}$/)
+      .regex(/^[a-zA-Z0-9!@#\$%\^\&*\)\(+=._-]{3,30}$/)
       .required(),
     userType: Joi.string()
       .min(3)

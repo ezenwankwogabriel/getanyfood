@@ -1,6 +1,6 @@
 const Joi = require('@hapi/joi');
 
-module.exports = function (req, res, next) {
+function verifySubUserSignUp(req, res, next) {
   const { body } = req;
   const schema = {
     firstName: Joi.string().min(3).max(40).required(),
@@ -13,5 +13,6 @@ module.exports = function (req, res, next) {
 
   const { error } = Joi.validate(body, schema);
   if (error) return res.badRequest(error.details[0].message);
-  next();
-};
+  return next();
+}
+module.exports = verifySubUserSignUp;

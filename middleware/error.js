@@ -1,5 +1,5 @@
+const debug = require('debug')('app:startup');
 const logger = require('../startup/logger');
-const { debug } = require('../utils');
 
 module.exports = (err, req, res, next) => {
   const env = req.app.get('env') === 'development';
@@ -10,7 +10,9 @@ module.exports = (err, req, res, next) => {
   if (env && !env.errors) {
     errObject = err;
   }
-
+  if (res.headersSent) {
+    return next(err);
+  }
   debug(err);
   logger.log({
     message: err,
@@ -21,7 +23,7 @@ module.exports = (err, req, res, next) => {
   } else {
     res.status(err.status || 500);
   }
-  res.json({
+  return res.json({
     message: err.message,
     error: errObject || {},
   });
