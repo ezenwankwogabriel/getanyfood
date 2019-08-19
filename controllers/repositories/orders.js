@@ -10,7 +10,7 @@ const Setting = require('../../models/setting');
 
 function search(model, query, options = {}) {
   return new Promise((resolve, reject) => {
-    model.textSearch(query, options, (err, { results }) => {
+    model.textSearch(query, options, (err, { results = [] }) => {
       if (err) return reject(err);
       return resolve(results);
     });
@@ -18,7 +18,6 @@ function search(model, query, options = {}) {
 }
 
 const orderActions = {
-  // eslint-disable-next-line consistent-return
   async scopeRequest(req, res, next) {
     try {
       const order = await Order.findOne({
@@ -38,9 +37,9 @@ const orderActions = {
       if (!order) return res.status(404).send('This order does not exist');
 
       req.scopedOrder = order;
-      next();
+      return next();
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 
@@ -51,17 +50,37 @@ const orderActions = {
     });
     try {
       const [
-        savedOrder,
-        priceTotal,
         merchant,
         customer,
         settings,
       ] = await Promise.all([
-        order.save(),
-        utils.getPriceTotal(order),
         User.findById(req.body.merchant),
         User.findById(req.user.id),
         Setting.findOne(),
+      ]);
+
+      const delivery = {
+        ...merchant.delivery,
+        ...customer.delivery,
+        ...req.body.delivery,
+        price:
+              merchant.delivery.method === 'self'
+                ? merchant.delivery.price
+                : settings.deliveryCharge,
+      };
+
+      const deliveryLocationMatch = delivery.location.city.toLowerCase() !== merchant.location.city.toLowerCase();
+
+      if (deliveryLocationMatch) {
+        return res.badRequest('Location mismatch: this order cannot be delivered.');
+      }
+
+      const [
+        savedOrder,
+        priceTotal,
+      ] = await Promise.all([
+        order.save(),
+        utils.getPriceTotal(order),
       ]);
       const transaction = await paystack.transaction.initialize({
         reference: savedOrder.id,
@@ -75,15 +94,7 @@ const orderActions = {
         savedOrder.id,
         {
           priceTotal,
-          delivery: {
-            ...merchant.delivery,
-            ...customer.delivery,
-            ...req.body.delivery,
-            price:
-              merchant.delivery.method === 'self'
-                ? merchant.delivery.price
-                : settings.deliveryCharge,
-          },
+          delivery,
           payment: { accessCode: transaction.data.access_code },
         },
         { new: true },
@@ -99,9 +110,9 @@ const orderActions = {
           select: '-password -selected',
         });
 
-      res.success(fullOrder);
+      return res.success(fullOrder);
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 
@@ -404,7 +415,6 @@ const orderActions = {
     }
   },
 
-  // eslint-disable-next-line consistent-return
   async update(req, res, next) {
     const { status, pickupTime } = req.body;
     try {
@@ -430,7 +440,7 @@ const orderActions = {
 
       return res.success(updatedOrder);
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 
