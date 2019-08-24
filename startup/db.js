@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const config = require('config');
-const { debug, dbName } = require('../utils');
+const debug = require('debug')('app:startup');
+const { dbName } = require('../utils');
 
 //  DB Connection =============================================================
 function dbConnect() {

@@ -1,4 +1,4 @@
-module.exports = function (handler) {
+function asyncMiddleWare(handler) {
   return async (req, res, next) => {
     try {
       handler(req, res);
@@ -6,4 +6,6 @@ module.exports = function (handler) {
       next(ex);
     }
   };
-};
+}
+
+module.exports = asyncMiddleWare;

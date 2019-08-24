@@ -3,6 +3,9 @@ const passport = require('passport');
 const User = require('../repositories/users');
 const Order = require('../repositories/orders');
 const Ticket = require('../repositories/tickets');
+const Vendor = require('../repositories/vendors');
+const Promotion = require('../repositories/promotions');
+const verifyRecommendVendor = require('../../middleware/UserManagement/validateRecommendVendor');
 
 const router = new Router();
 
@@ -45,5 +48,13 @@ router.get('/:id/tickets/:ticketId', Ticket.showOne);
 router.get('/:id/tickets/:ticketId/messages', Ticket.showMessages);
 
 router.post('/:id/tickets/:ticketId/messages', Ticket.createMessage);
+
+router.get('/:id/vendors', Vendor.vendorList);
+
+router.get('/:id/vendor/:vendorId/products', Vendor.vendorProducts);
+
+router.post('/:id/vendor/recommend', verifyRecommendVendor, Vendor.recommendNewVendor);
+
+router.get('/:id/promotions', Promotion.getPromotions);
 
 module.exports = router;

@@ -1,4 +1,4 @@
-const { debug } = require('../utils');
+const debug = require('debug')('app:startup');
 
 class Email {
   constructor(details) {
@@ -10,4 +10,4 @@ class Email {
   }
 }
 
-module.exports = Email;
+module.exports = data => new Email(data);

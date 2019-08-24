@@ -1,6 +1,5 @@
-function globals(io, config) {
+function globals(config) {
   /* globals */
-  global.myIo = io;
   global.$database = config.dbName;
   global.servername = config.host;
 }

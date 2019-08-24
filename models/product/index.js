@@ -29,7 +29,9 @@ const productSchema = new Schema({
   },
   calories: Number,
   discount: { type: Number, min: 0, max: 100 },
+  rating: { type: Number, min: 0, max: 5 },
   deliveryTime: { type: Number, required: true },
+  deliveryType: { type: String, enum: ['free', 'paid'], default: 'paid' },
   subProducts: [subProductSchema],
   subProductGroups: [
     {

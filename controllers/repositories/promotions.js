@@ -115,6 +115,12 @@ const promotionActions = {
       next(err);
     }
   },
+
+  getPromotions: async (req, res) => {
+    const query = { discount: { $gt: 0 } };
+    const promotions = await utils.PaginateRequest(req, query, Product);
+    res.success(promotions);
+  },
 };
 
 module.exports = promotionActions;

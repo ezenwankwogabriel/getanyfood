@@ -1,7 +1,9 @@
 const crypto = require('crypto');
 const User = require('../../../models/user/index');
 const CreateUser = require('./createUser');
-const { supportEmail, webHost, Email, AuditTrail } = require('../../../utils');
+const {
+  supportEmail, webHost, Email, AuditTrail,
+} = require('../../../utils');
 
 const userActions = {
   signUp: async (req, res) => {
@@ -9,10 +11,8 @@ const userActions = {
     const admin = await User.findOne({
       userType: 'super_admin',
     });
-    if (!admin && body.userType !== 'super_admin')
-      return res.unAuthorized('Create an admin account to continue');
-    if (admin && body.userType === 'super_admin')
-      return res.unAuthorized('Admin account already exists');
+    if (!admin && body.userType !== 'super_admin') return res.unAuthorized('Create an admin account to continue');
+    if (admin && body.userType === 'super_admin') return res.unAuthorized('Admin account already exists');
     const user = await User.findOne({
       emailAddress: body.emailAddress,
     });

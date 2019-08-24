@@ -1,3 +1,5 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable func-names */
 const bcrypt = require('bcrypt-nodejs');
 const JWT = require('jsonwebtoken');
 const mongoose = require('mongoose');
@@ -26,9 +28,7 @@ const userSchema = new Schema({
   businessName: {
     type: String,
     minlength: 3,
-    required() {
-      return this.userType === 'merchant';
-    },
+    required() { return this.userType === 'merchant'; },
   },
   emailAddress: {
     type: String,
@@ -134,15 +134,14 @@ const userSchema = new Schema({
   },
 });
 
-userSchema.virtual('fullName').get(function getFullName() {
+userSchema.virtual('fullName').get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
-
 userSchema.methods.getMerchantRating = async function getMerchantRating() {
   const orders = await Order.find({
     // eslint-disable-next-line no-underscore-dangle
     merchant: this._id,
-    rating: { $exists: true },
+    status: 'completed',
   });
 
   if (!orders.length) {

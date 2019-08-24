@@ -1,5 +1,4 @@
 const config = require('config');
-const debug = require('debug')('app:startup');
 
 const Email = require('./email');
 const AuditTrail = require('./auditTrail');
@@ -15,7 +14,6 @@ module.exports = {
   dbName: config.get('database'),
   webHost: config.get('web_host'),
   supportEmail: config.get('support'),
-  debug,
 
   Email,
   EncryptPassword,
