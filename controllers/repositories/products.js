@@ -4,11 +4,12 @@ const User = require('../../models/user');
 const ProductCategory = require('../../models/product/category');
 const Product = require('../../models/product');
 const Order = require('../../models/order');
+const utils = require('../../utils');
 const collate = require('../../utils/collate.js');
 
 const productActions = {
   Category: {
-    scopeRequest: async (req, res, next) => {
+    async scopeRequest(req, res, next) {
       try {
         const category = await ProductCategory.findOne({
           merchant: req.params.id,
@@ -30,7 +31,7 @@ const productActions = {
       }
     },
 
-    create: async (req, res, next) => {
+    async create(req, res, next) {
       const category = new ProductCategory({
         ...req.body,
         merchant: req.params.id,
@@ -47,7 +48,23 @@ const productActions = {
 
     showOne: (req, res) => res.success(req.scopedCategory),
 
-    update: async (req, res, next) => {
+    async showAll(req, res, next) {
+      const queryOptions = {
+        populate: [{
+          path: 'merchant',
+          model: User,
+          select: '-password -deleted',
+        }],
+      };
+      try {
+        const products = await utils.PaginateRequest(req, queryOptions, ProductCategory);
+        res.success(products);
+      } catch (err) {
+        next(err);
+      }
+    },
+
+    async update(req, res, next) {
       try {
         await req.scopedCategory.update({
           ...req.body,
@@ -71,7 +88,7 @@ const productActions = {
   },
 
   SubProduct: {
-    create: async (req, res, next) => {
+    async create(req, res, next) {
       req.scopedProduct.subProducts.push(req.body);
       try {
         const product = await req.scopedProduct.save();
@@ -81,7 +98,7 @@ const productActions = {
       }
     },
 
-    update: async (req, res, next) => {
+    async update(req, res, next) {
       const {
         name,
         description,
@@ -115,7 +132,7 @@ const productActions = {
   },
 
   ComboProduct: {
-    scopeRequest: async (req, res, next) => {
+    async scopeRequest(req, res, next) {
       try {
         const product = await Product.findOne({
           type: 'combo',
@@ -147,7 +164,7 @@ const productActions = {
       }
     },
 
-    create: async (req, res, next) => {
+    async create(req, res, next) {
       const comboProduct = new Product({
         ...req.body,
         type: 'combo',
@@ -169,7 +186,32 @@ const productActions = {
       }
     },
 
-    update: async (req, res, next) => {
+    async showAll(req, res, next) {
+      const queryOptions = {
+        merchant: req.params.id,
+        type: 'combo',
+        populate: [{
+          path: 'merchant',
+          model: User,
+          select: '-password -deleted',
+        }, {
+          path: 'comboProducts.product',
+          model: Product,
+        }, {
+          path: 'category',
+          model: ProductCategory,
+        }],
+      };
+      try {
+        const products = await utils.PaginateRequest(req, queryOptions, Product);
+
+        res.success(products);
+      } catch (err) {
+        next(err);
+      }
+    },
+
+    async update(req, res, next) {
       try {
         await req.scopedProduct.update({
           ...req.body,
@@ -189,7 +231,7 @@ const productActions = {
     },
   },
 
-  scopeRequest: async (req, res, next) => {
+  async scopeRequest(req, res, next) {
     try {
       const product = await Product.findOne({
         merchant: req.params.id,
@@ -216,7 +258,7 @@ const productActions = {
     }
   },
 
-  createInCategory: async (req, res, next) => {
+  async createInCategory(req, res, next) {
     const product = new Product({
       ...req.body,
       type: 'single',
@@ -235,7 +277,29 @@ const productActions = {
 
   showOne: (req, res) => res.success(req.scopedProduct),
 
-  update: async (req, res, next) => {
+  async showAllInCategory(req, res, next) {
+    const queryOptions = {
+      merchant: req.params.id,
+      category: req.params.categoryId,
+      populate: [{
+        path: 'merchant',
+        model: User,
+        select: '-password -deleted',
+      }, {
+        path: 'category',
+        model: ProductCategory,
+      }],
+    };
+    try {
+      const products = await utils.PaginateRequest(req, queryOptions, Product);
+      res.success(products);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+
+  async update(req, res, next) {
     try {
       await req.scopedProduct.update({
         ...req.body,

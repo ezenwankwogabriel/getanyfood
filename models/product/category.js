@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate');
 
 const { Schema } = mongoose;
 const { ObjectId } = Schema.Types;
@@ -10,5 +11,7 @@ const productCategorySchema = new Schema({
   createdAt: { type: Date, default: Date.now, required: true },
   updatedAt: { type: Date },
 });
+
+productCategorySchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('ProductCategory', productCategorySchema);
