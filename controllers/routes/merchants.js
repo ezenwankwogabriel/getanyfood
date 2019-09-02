@@ -41,16 +41,25 @@ router.patch('/:id/orders/:orderId', Order.update);
 
 router.post('/:id/product-categories', Product.Category.create);
 
+router.get('/:id/product-categories', Product.Category.showAll);
+
 router.use(
   '/:id/product-categories/:categoryId',
   Product.Category.scopeRequest,
 );
+
+router.get('/:id/product-categories/:categoryId', Product.Category.showOne);
 
 router.put('/:id/product-categories/:categoryId', Product.Category.update);
 
 router.post(
   '/:id/product-categories/:categoryId/products',
   Product.createInCategory,
+);
+
+router.get(
+  '/:id/product-categories/:categoryId/products',
+  Product.showAllInCategory,
 );
 
 router.use(
@@ -79,6 +88,8 @@ router.put(
 );
 
 router.post('/:id/combo-products', Product.ComboProduct.create);
+
+router.get('/:id/combo-products', Product.ComboProduct.showAll);
 
 router.use('/:id/combo-products/:productId', Product.ComboProduct.scopeRequest);
 
