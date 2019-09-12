@@ -5,19 +5,31 @@ const utils = require('../../../utils');
 module.exports = class CreateSubUser {
   static async createUser(req, res) {
     const { body, user } = req;
-    const userSubType = utils.UserSubType(user.userType) ? utils.UserSubType(user.userType) : false;
-    if (!userSubType) { return res.unAuthorized('Invalid user type, contact admin'); }
-    if (!user.verifyPassword(body.adminPassword)) { return res.unAuthorized('Admin Password Incorrect'); }
+    const userSubType = utils.UserSubType(user.userType);
+    // use adminId(if its a sub user) else use _id(admin user);
+    const pass = user.adminId || user._id;
+    const emailExists = await UserModel.findByEmail(body.emailAddress);
+    if (emailExists) return res.badRequest('Email address exists already');
+    const verifiedAdminPass = await UserModel.verifyAdminPassword(pass, body.adminPassword);
+    if (!verifiedAdminPass) return res.unAuthorized('Admin Password Incorrect');
     const newUser = new UserModel({
-      fullName: `${body.firstName} ${body.lastName}`,
+      firstName: body.firstName,
+      lastName: body.lastName,
       emailAddress: body.emailAddress,
       password: utils.EncryptPassword(body.userPassword),
+      phoneNumber: body.phoneNumber,
       permission: body.permission, // verify this
       userType: userSubType,
       adminId: user.adminId || user._id,
     });
-    await newUser.save();
-    return res.success(newUser);
+    const saved = await newUser.save();
+    const details = {
+      email: user.emailAddress,
+      subject: 'Account Registration Details',
+      template: 'registration',
+    };
+    utils.Email(details).send();
+    return res.success(saved);
   }
 
   static async actionOnUser(req, res) {

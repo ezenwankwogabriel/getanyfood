@@ -23,7 +23,7 @@ module.exports = class Payment {
     const requests = await utils.PaginateRequest(req, query, PaymentModel);
 
     if (isExports) {
-      const fields = ['recipient', 'amount', 'transactionNumber', 'bankName', 'accountNumber', 'status', 'createdAt'];
+      const fields = ['merchant', 'amount', 'transactionNumber', 'bankName', 'accountNumber', 'status', 'createdAt'];
       const fieldNames = ['Merchant', 'Amount', 'Transaction Number', 'Bank Name', 'Account Number', 'Status', 'Date Created'];
       const csv = await utils.ExportCsv(fields, fieldNames, requests.docs);
       res.attachment('Payment Request.csv');
@@ -35,10 +35,29 @@ module.exports = class Payment {
   static async markAsPaid(req, res) {
     let { paymentIds } = req.body;
     if (typeof paymentIds === 'string') paymentIds = [paymentIds];
-    else if (Array.isArray(paymentIds)) paymentIds = false;
+    else if (!Array.isArray(paymentIds)) paymentIds = false;
     if (!paymentIds) { return res.badRequest('Payment Id is required'); }
-    await PaymentModel.update({ _id: { $in: paymentIds } }, { $set: { status: true } });
-    return res.success('Request marked as Paid');
+    let payments = await PaymentModel.find({ _id: { $in: paymentIds } });
+    payments = payments.filter(payment => !payment.status);
+    if (payments.length < 1) return res.badRequest('Request has been previously marked');
+    const paymentQuery = payments.map(payment => ({
+      updateOne: {
+        // eslint-disable-next-line no-underscore-dangle
+        filter: { _id: payment._id },
+        update: { status: true },
+      },
+    }));
+    const userQuery = payments.map(payment => ({
+      updateOne: {
+        filter: { _id: payment.merchant },
+        update: { $inc: { walletAmount: -payment.amount } },
+      },
+    }));
+    await Promise.all([
+      User.bulkWrite(userQuery),
+      PaymentModel.bulkWrite(paymentQuery),
+    ]);
+    return res.success(`${paymentIds.length > 0 ? 'Requests' : 'Request'}  marked as Paid`);
   }
 
   static async showPaidRequests(req, res, next) {
@@ -46,7 +65,7 @@ module.exports = class Payment {
       status: true,
       populate: [
         {
-          path: 'recipient',
+          path: 'merchant',
           model: User,
           select: '-password -deleted',
         },
@@ -69,12 +88,12 @@ module.exports = class Payment {
   static async exportPaidRequests(req, res, next) {
     try {
       const payments = await PaymentModel.find({ status: true }).populate({
-        path: 'recipient',
+        path: 'merchant',
         model: User,
         select: 'businessName -password -deleted',
       });
       const fields = [
-        'recipient',
+        'merchant',
         'amount',
         'transactionNumber',
         'bankName',
@@ -96,7 +115,7 @@ module.exports = class Payment {
         fieldNames,
         payments.map(payment => ({
           ...payment,
-          recipient: payment.recipient.businessName,
+          merchant: payment.merchant.businessName,
         })),
       );
       res.attachment('Paid Requests.csv');

@@ -8,6 +8,11 @@ const orderSchema = new Schema(
   {
     customer: { type: ObjectId, ref: 'User', required: true },
     merchant: { type: ObjectId, ref: 'User', required: true },
+    planner: {
+      id: { type: String },
+      deliveryDate: { type: Date },
+      deliveryTime: { type: String },
+    },
     status: {
       type: String,
       enum: ['rejected', 'pending', 'accepted', 'completed'],

@@ -32,6 +32,8 @@ const userSchema = new Schema({
   },
   emailAddress: {
     type: String,
+    unique: true,
+    dropDups: true,
     lowercase: true,
     trim: true,
     required: true,
@@ -80,6 +82,7 @@ const userSchema = new Schema({
     },
     price: String,
   },
+  walletAmount: { type: Number, default: 0 },
   password: { type: String, set: encryptPassword, required: true },
   userType: {
     type: String,
@@ -130,7 +133,9 @@ const userSchema = new Schema({
     required() {
       return this.userType === 'merchant';
     },
-    default: false,
+    default() {
+      return this.userType === 'super_admin';
+    },
   },
 });
 
@@ -177,7 +182,8 @@ userSchema.statics.verifyAdminPassword = async function verifyAdminPassword(
 ) {
   try {
     const adminUser = await this.findOne({ _id: userId });
-    return bcrypt.compareSync(adminPassword, adminUser.password);
+    const user = bcrypt.compareSync(adminPassword, adminUser.password);
+    return user;
   } catch (ex) {
     throw new Error(ex);
   }

@@ -7,6 +7,7 @@ async function getPriceTotal(order) {
     User.findById(order.merchant),
     Setting.findOne(),
   ]);
+  if (!settings) throw new Error('Getanyfood price not set');
   let { deliveryCharge } = settings;
   if (merchant.delivery.method === 'self') deliveryCharge = merchant.delivery.price;
 

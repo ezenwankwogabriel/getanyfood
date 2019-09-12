@@ -6,7 +6,7 @@ const { ObjectId } = Schema.Types;
 
 const paymentSchema = new Schema(
   {
-    recipient: { type: ObjectId, ref: 'User', required: true },
+    merchant: { type: ObjectId, ref: 'User', required: true },
     amount: { type: String, required: true },
     transactionNumber: { type: String, required: true },
     bankName: { type: String, required: true },

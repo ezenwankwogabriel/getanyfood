@@ -11,6 +11,8 @@ const router = new Router();
 
 router.use(passport.authenticate('customer', { session: false }));
 
+router.get('/weeklyplanner', Order.plannerList);
+
 router.use('/:id', User.scopeRequest('customer'));
 
 router.get('/:id', User.showOne);
@@ -56,5 +58,6 @@ router.get('/:id/vendor/:vendorId/products', Vendor.vendorProducts);
 router.post('/:id/vendor/recommend', verifyRecommendVendor, Vendor.recommendNewVendor);
 
 router.get('/:id/promotions', Promotion.getPromotions);
+
 
 module.exports = router;

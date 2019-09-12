@@ -48,7 +48,7 @@ class CreateUser {
         password: this.password,
         userType: this.userType,
         isAdmin: true,
-      });
+      }, { delivery: 0, password: 0 });
       await merchant.save();
       return merchant;
     } catch (ex) {
@@ -63,7 +63,7 @@ class CreateUser {
         password: this.password,
         userType: this.userType,
         isAdmin: true,
-      });
+      }, { delivery: 0, password: 0 });
       await admin.save();
       return admin;
     } catch (ex) {
@@ -81,7 +81,7 @@ class CreateUser {
         password: this.password,
         userType: this.userType,
         isAdmin: true,
-      });
+      }, { delivery: 0, password: 0 });
       await customer.save();
       return customer;
     } catch (ex) {

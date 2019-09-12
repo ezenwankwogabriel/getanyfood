@@ -1,4 +1,6 @@
 module.exports = {
-    testEnvironment: 'node'
-  };
-  
+  testEnvironment: 'node',
+  // collectCoverage: true,
+  // setupFilesAfterEnv: './jest.setup.js',
+  clearMocks: true,
+};

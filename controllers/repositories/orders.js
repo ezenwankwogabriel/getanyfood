@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 const crypto = require('crypto');
 const paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
 const { groupBy, sortBy } = require('lodash');
@@ -7,6 +8,9 @@ const User = require('../../models/user');
 const Product = require('../../models/product');
 const Order = require('../../models/order');
 const Setting = require('../../models/setting');
+const WeeklyPlanner = require('../../models/planner');
+const PaymentHistory = require('../../models/payment/paymentHistory');
+const { SendNotification } = require('../../controllers/repositories/notification');
 
 function search(model, query, options = {}) {
   return new Promise((resolve, reject) => {
@@ -45,11 +49,45 @@ const orderActions = {
   },
 
   async create(req, res, next) {
-    const order = new Order({
-      ...req.body,
-      customer: req.user.id,
-    });
     try {
+      const {
+        deliveryTime, deliveryDate, endDate, startDate, ...rest
+      } = req.body;
+      const order = new Order({
+        ...rest,
+        customer: req.user.id,
+      });
+      if (endDate && startDate) {
+        // save as planner if not exist
+        let plannerDoc = await WeeklyPlanner.findOne({
+          customer: req.user.id,
+          startDate: { $gte: startDate },
+          endDate: { $lte: endDate },
+        });
+        const plannerOrder = {
+          deliveryDate,
+          orderNumber: order._id,
+          deliveryTime,
+          merchant: order.merchant,
+        };
+        if (plannerDoc) {
+          plannerDoc.orders.push(plannerOrder);
+          plannerDoc.payment.status = 'pending';
+        } else {
+          plannerDoc = new WeeklyPlanner({
+            startDate,
+            endDate,
+            customer: req.user.id,
+            orders: [plannerOrder],
+          });
+        }
+        req.planner = plannerDoc;
+        order.planner = {
+          id: plannerDoc._id,
+          deliveryDate,
+          deliveryTime,
+        };
+      }
       const [
         savedOrder,
         priceTotal,
@@ -63,9 +101,15 @@ const orderActions = {
         User.findById(req.user.id),
         Setting.findOne(),
       ]);
+      const price = merchant.delivery.method === 'self' ? merchant.delivery.price : settings.deliveryCharge;
+      if (req.planner) {
+        req.planner.orders.price = price;
+        req.planner.priceTotal += priceTotal;
+        req.planner.reference = `000${req.planner._id}${req.planner.orders.length}`;
+      } // save weekly planner details if exists;
       const transaction = await paystack.transaction.initialize({
-        reference: savedOrder.id,
-        amount: priceTotal * 100,
+        reference: req.planner ? req.planner.reference : savedOrder.id,
+        amount: req.planner ? req.planner.priceTotal * 100 : priceTotal * 100,
         email: customer.emailAddress,
       });
       if (transaction.status !== true) {
@@ -79,12 +123,9 @@ const orderActions = {
             ...merchant.delivery,
             ...customer.delivery,
             ...req.body.delivery,
-            price:
-              merchant.delivery.method === 'self'
-                ? merchant.delivery.price
-                : settings.deliveryCharge,
+            price,
           },
-          payment: { accessCode: transaction.data.access_code },
+          payment: { accessCode: req.planner ? '' : transaction.data.access_code },
         },
         { new: true },
       )
@@ -98,10 +139,39 @@ const orderActions = {
           model: User,
           select: '-password -selected',
         });
-
-      return res.success(fullOrder);
+      req.planner.payment.accessCode = transaction.data.access_code;
+      await req.planner.save();
+      SendNotification({
+        message: `An order has been placed by ${customer.fullName}`,
+        orderNumber: fullOrder._id,
+        notificationTo: merchant._id,
+        notificationFrom: customer._id,
+      });
+      return res.success(req.planner ? req.planner : fullOrder);
     } catch (err) {
       return next(err);
+    }
+  },
+
+  async plannerList(req, res, next) {
+    const queryOptions = {
+      populate: [
+        {
+          path: 'customer',
+          model: User,
+          select: '-password -deleted',
+        },
+        {
+          path: 'orders.orderNumber',
+          model: Order,
+        },
+      ],
+    };
+    try {
+      const plans = await utils.PaginateRequest(req, queryOptions, WeeklyPlanner);
+      return res.success(plans);
+    } catch (ex) {
+      return next(ex);
     }
   },
 
@@ -428,6 +498,13 @@ const orderActions = {
           select: '-password -deleted',
         });
 
+      // SendNotification({
+      //   message: `An order has been placed by ${statusUpdate}`,
+      //   orderNumber: updatedOrder._id,
+      //   notificationTo: updatedOrder._id,
+      //   notificationFrom: req.user._id,
+      // })
+
       return res.success(updatedOrder);
     } catch (err) {
       return next(err);
@@ -441,15 +518,56 @@ const orderActions = {
         .update(JSON.stringify(req.body))
         .digest('hex');
       if (hash === req.headers['x-paystack-signature']) {
-        const event = req.body;
-        if (event.event === 'charge.success') {
-          await Order.findByIdAndUpdate(
-            event.data.reference,
-            {
-              payment: { status: event.data.status },
-            },
-            { new: true },
-          );
+        const { event, data } = req.body;
+        if (event === 'charge.success') {
+          const { reference } = data;
+          if (reference.indexOf('000') > -1) { // weekly planner payment
+            const planner = await WeeklyPlanner.fineOne({ reference: data.reference });
+            const orderNumbers = planner.orders.map(order => order.orderNumber);
+            planner.priceTotal = 0;
+            planner.payment.status = data.status;
+            const userQuery = planner.orders.map(order => ({
+              updateOne: {
+                filter: { _id: order.merchant },
+                update: { $inc: { walletAmount: order.price } },
+              },
+            }));
+            const paymentQuery = planner.orders.map(order => ({
+              insertOne: {
+                customer: planner.customer,
+                merchant: order.merchant,
+                amount: order.price,
+              },
+            }));
+
+            await Promise.all([
+              User.bulkWrite(userQuery), // update walletAmount for merchants
+              PaymentHistory.bulkWrite(paymentQuery), // create payment record for individual orders
+              Order.update( // update individual order payment status
+                { _id: { $in: orderNumbers } },
+                { payment: { status: data.status } },
+              ),
+              planner.save(), // save updated planner record
+            ]);
+          } else {
+            const order = await Order.findById(data.reference);
+            order.payment.status = data.status;
+            const { merchant, customer, priceTotal } = order;
+            const payment = new PaymentHistory({
+              merchant,
+              customer,
+              amount: priceTotal,
+            });
+            await Promise.all([
+              order.save(), // update order payment status
+              payment.save(), // create payment record for this order
+              User.findByIdAndUpdate(
+                merchant, {
+                  $inc: { walletAmount: priceTotal },
+                },
+              ), // update user walletAmount for this merchant
+            ]);
+          }
         }
       }
       res.success();

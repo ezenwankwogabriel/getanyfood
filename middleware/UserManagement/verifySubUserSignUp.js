@@ -6,8 +6,7 @@ function verifySubUserSignUp(req, res, next) {
     firstName: Joi.string().min(3).max(40).required(),
     lastName: Joi.string().min(3).max(40).required(),
     emailAddress: Joi.string().email({ minDomainSegments: 2 }).required(),
-    adminPassword: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/).required(),
-    userPassword: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/).required(),
+    phoneNumber: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/),
     permission: Joi.object(),
   };
 
