@@ -1,4 +1,5 @@
 const User = require('../../models/user');
+const utils = require('../../utils');
 
 const userActions = {
   scopeRequest: (userType, password = false) => async (req, res, next) => {
@@ -22,8 +23,24 @@ const userActions = {
     }
   },
 
+  async showAllMerchants(req, res, next) {
+    try {
+      const queryOptions = {
+        userType: { $in: ['merchant', 'sub_merchant'] },
+        deleted: 0,
+      };
+
+      const merchants = await utils.PaginateRequest(req, queryOptions, User);
+
+      res.success(merchants);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async showOne(req, res) {
     if (req.scopedUser.userType === 'merchant') {
+      // eslint-disable-next-line no-underscore-dangle
       req.scopedUser._doc.rating = await req.scopedUser.getMerchantRating();
     }
 
@@ -31,15 +48,14 @@ const userActions = {
   },
 
   async update(req, res, next) {
+    if (req.user.id !== req.scopedUser.id) {
+      return res.badRequest('You can only update your own profile.');
+    }
+
     const { oldPassword, password } = req.body;
 
-    if (password && oldPassword) {
-      if (req.scopedUser.id !== req.user.id) {
-        return res.badRequest('You can only change your own password');
-      }
-      if (!req.scopedUser.verifyPassword(oldPassword)) {
-        return res.badRequest('Enter your current password correctly');
-      }
+    if (password && !req.scopedUser.verifyPassword(oldPassword)) {
+      return res.badRequest('Enter your current password correctly');
     }
 
     try {
