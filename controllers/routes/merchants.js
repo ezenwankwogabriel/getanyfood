@@ -9,19 +9,17 @@ const Payment = require('../repositories/payment/merchantPayment');
 
 const router = new Router();
 
-router.use(passport.authenticate('auth', { session: false }));
+router.use(passport.authenticate(['admin', 'merchant'], { session: false }));
 
 router.get('/', User.showAllMerchants);
-
-router.use('/:id', User.scopeRequest('merchant'));
-
-router.get('/:id', User.showOne);
-
-router.use(passport.authenticate('merchant', { session: false }));
 
 router.get('/payment/:isExports?', Payment.getPayment);
 
 router.post('/request-withdrawal', Payment.requestWithdrawal);
+
+router.use('/:id', User.scopeRequest('merchant'));
+
+router.get('/:id', User.showOne);
 
 router.put('/:id', User.update);
 
