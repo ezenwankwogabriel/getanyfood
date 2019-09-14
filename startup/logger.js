@@ -1,4 +1,5 @@
 const winston = require('winston');
+const TelegramLogger = require('winston-telegram');
 
 // require('winston-mongodb');
 
@@ -35,9 +36,23 @@ const logger = winston.createLogger({
 //
 const env = process.env.NODE_ENV;
 if (env !== 'production' && env !== 'test') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple(),
-  }));
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    }),
+  );
+}
+
+// If appropriate credentials provided, log errors to telegram channel
+const { TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID } = process.env;
+if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+  logger.add(
+    new TelegramLogger({
+      token: TELEGRAM_BOT_TOKEN,
+      chatId: TELEGRAM_CHAT_ID,
+      level: 'error',
+    }),
+  );
 }
 
 module.exports = logger;
