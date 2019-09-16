@@ -9,7 +9,9 @@ const verifyRecommendVendor = require('../../middleware/UserManagement/validateR
 
 const router = new Router();
 
-router.use(passport.authenticate('customer', { session: false }));
+router.use(passport.authenticate(['customer', 'admin'], { session: false }));
+
+router.get('/', User.showAllCustomers);
 
 router.get('/weeklyplanner', Order.plannerList);
 
@@ -55,9 +57,12 @@ router.get('/:id/vendors', Vendor.vendorList);
 
 router.get('/:id/vendor/:vendorId/products', Vendor.vendorProducts);
 
-router.post('/:id/vendor/recommend', verifyRecommendVendor, Vendor.recommendNewVendor);
+router.post(
+  '/:id/vendor/recommend',
+  verifyRecommendVendor,
+  Vendor.recommendNewVendor,
+);
 
 router.get('/:id/promotions', Promotion.getPromotions);
-
 
 module.exports = router;

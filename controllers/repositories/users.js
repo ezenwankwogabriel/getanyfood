@@ -38,6 +38,21 @@ const userActions = {
     }
   },
 
+  async showAllCustomers(req, res, next) {
+    try {
+      const queryOptions = {
+        userType: 'customer',
+        deleted: 0,
+      };
+
+      const customers = await utils.PaginateRequest(req, queryOptions, User);
+
+      res.success(customers);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async showOne(req, res) {
     if (req.scopedUser.userType === 'merchant') {
       // eslint-disable-next-line no-underscore-dangle
