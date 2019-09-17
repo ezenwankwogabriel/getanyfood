@@ -10,6 +10,26 @@ const customersRoutes = require('../controllers/routes/customers');
 const Order = require('../controllers/repositories/orders');
 
 function routeApis(app) {
+  app.param(
+    [
+      'id',
+      'categoryId',
+      'productId',
+      'subProductId',
+      'orderId',
+      'vendorId',
+      'promotionId',
+      'ticketId',
+    ],
+    (req, res, next, value) => {
+      const hexRegex = /^[\da-e]+$/i;
+      if (hexRegex.test(value)) {
+        return next();
+      }
+      return next('route');
+    },
+  );
+
   app.use('/', Auth);
   app.use('/user', passport.authenticate('auth', { session: false }), User);
   app.use(
