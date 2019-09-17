@@ -8,7 +8,7 @@ module.exports = class AuditTrail {
       userType: 'merchant',
       deleted: 0,
       status: 1,
-      select: ['businessName', 'businessAddress', 'emailAddress', 'phoneNumber', 'workingHours', 'profileThumbnail', 'businessDescription', 'businessCategory'],
+      select: ['businessName', 'businessAddress', 'emailAddress', 'phoneNumber', 'workingHours', 'profilePhoto', 'profileThumbnail', 'businessDescription', 'businessCategory'],
     };
     if (req.query.name) query.businessName = new RegExp(req.query.name);
     if (req.query.category) query.businessCategory = new RegExp(req.query.category);
