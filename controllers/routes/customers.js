@@ -11,6 +11,8 @@ const router = new Router();
 
 router.use(passport.authenticate(['customer', 'admin'], { session: false }));
 
+router.get('/getVendorTypes', Vendor.getVendorTypes);
+
 router.get('/', User.showAllCustomers);
 
 router.get('/weeklyplanner', Order.plannerList);
