@@ -3,10 +3,13 @@ const passport = require('passport');
 const User = require('../repositories/users');
 const Payment = require('../repositories/payment/adminPayment');
 const Order = require('../repositories/orders');
+const Vendor = require('../repositories/vendors');
 
 const router = new Router();
 
 router.use(passport.authenticate('admin', { session: false }));
+
+router.post('/vendorTypes', Vendor.vendorTypes);
 
 router.get('/payment-request/:isExports?', Payment.getPaymentRequest);
 

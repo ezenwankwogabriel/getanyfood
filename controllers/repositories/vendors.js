@@ -1,6 +1,7 @@
 const UserModel = require('../../models/user');
 const ProductModel = require('../../models/product');
 const utils = require('../../utils/index');
+const VendorModel = require('../../models/user/vendorType');
 
 module.exports = class AuditTrail {
   static async vendorList(req, res) {
@@ -45,5 +46,21 @@ module.exports = class AuditTrail {
     const email = utils.Email({ ...req.body, to: utils.supportEmail });
     await email.send();
     res.success();
+  }
+
+  static async vendorTypes(req, res) {
+    const types = req.body;
+    if (!Array.isArray(types)) return res.badRequest('types not provided or is not a valid array');
+    const vendors = await VendorModel.findOneAndUpdate(
+      {},
+      { vendors: types },
+      { upsert: true, new: true },
+    );
+    return res.success(vendors);
+  }
+
+  static async getVendorTypes(req, res) {
+    const { vendors } = await VendorModel.findOne({});
+    return res.success(vendors);
   }
 };
