@@ -16,7 +16,7 @@ const error = require('../middleware/error');
 function startup(app) {
   if (!process.env.secret) { return process.exit(1); }
 
-  app.set('view_engine', 'ejs');
+  app.set('view engine', 'ejs');
 
   swagger(app); // initialize swagger;
   app.use(passport.initialize());
@@ -37,8 +37,16 @@ function startup(app) {
   }));
   app.use(fileUpload());
   app.use(express.static(path.join(__dirname, './../upload')));
+  // app.use(express.static(__dirname + '/public'));
   app.use(express.static('public'));
   app.use(cors());
+  app.get('/emails', (req, res) => {
+    const Email = require('../utils/email')
+    Email({
+      email: 'dagabangel@mailinator.com', name: 'felicitate', subject: 'amaka', template: 'signup',
+    }).send();
+    res.render('signup', {date: new Date(), ip: 'localhost:8080' });
+  });
   routes(app); // link to routes
   app.use(error); // error handler
 }

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+    <head>
+     <link href="/css/style.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+    <div><br><br>
+        <div class="container tab" style="width:50%;">
+        <div>
+            <div class="background">
+                <div class="row">
+                <div class="col-md-8">
+                <img src="../../assets/images/email_icon.svg" alt="" >
+                </div>
+                <div class="col-md-4 date"><p style="float:right;padding-top:30px;padding-right:30px"><%= date %></p></div>
+            </div>
+            <h3 class="signup"><%= subject %></h3>
+            </div>
+        </div>
+        
+        <div>
+            <div class="background1">
+                <div style="padding:50px">
+                    <div class="background_sub ">
+                    <p class="thank_you"><%= content %></p>
+                    <br><br>
+                    <div class="button_position">
+                        <button class="btn-darkgreen px-5"><a href="<%= ip %>/<%= link %>"> <%= button %> </a></button>
+                    </div>
+                </div>
+                </div>
+                <p class="spam">If you got this mail by mistake, please kindly delete it.</p>
+                <p class="copy_right">© Getanyfood 2019, all rights reserved</p>
+                <p class="info">
+                    <span>Info@getanyfood.com</span>
+                    <span class="one">| +234 902 993 5036 |</span>
+                    <span>Unsubscribe</span>
+                </p>
+                <br>
+            </div>
+        </div>
+        
+        </div>
+        </div>
+    </body>

@@ -4,6 +4,7 @@
   "description": "an application designed to cater to online demand for consumables",
   "main": "app.js",
   "scripts": {
+    "start": "DEBUG=app:startup nodemon",
     "test": "jest --watchAll --verbose --runInBand",
     "test:single": "jest user.test.js --watchAll --verbose --runInBand",
     "lint": "./node_modules/.bin/eslint --fix ./controllers/ ./middleware/ ./models/ ./startup/ ./utils/"
@@ -28,6 +29,7 @@
   },
   "dependencies": {
     "@hapi/joi": "^15.1.0",
+    "aws-sdk": "^2.533.0",
     "axios": "^0.19.0",
     "bcrypt": "^3.0.6",
     "bcrypt-nodejs": "0.0.3",
@@ -56,6 +58,7 @@
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "paystack": "^2.0.1",
+    "sendmail": "^1.6.1",
     "shortid": "^2.2.15",
     "socket.io": "^2.2.0",
     "swagger-jsdoc": "^3.2.9",

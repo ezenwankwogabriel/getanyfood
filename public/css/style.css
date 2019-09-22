@@ -1,0 +1,97 @@
+.date{
+    /* font-family: Avenir; */
+    font-family: Metropolis-Regular;
+    font-size: 20px;
+    line-height: 30px;
+    /* identical to box height */
+    color: #FFFFFF;
+}
+.signup{
+    /* font-family: Avenir; */
+    font-family: Metropolis-Regular;
+    font-size: 20px;
+    line-height: 30px;
+    /* identical to box height */
+    color: #FFFFFF;
+    text-align: center
+}
+.background{
+    background: rgba(125, 190, 216, 0.45);
+    padding:20px;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+}
+.background1{
+    background: #F8F7F7;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+.thank_you{
+    /* font-family: Avenir; */
+    font-family: Metropolis-Regular;
+    font-size: 16px;
+    line-height: 18px;
+    /* identical to box height */
+    color: rgba(0, 0, 0, 0.59);
+    text-align: center;
+}
+.spam{
+    /* font-family: Avenir; */
+    font-family: Metropolis-Regular;
+    font-size: 12px;
+    line-height: 12px;
+    /* identical to box height */
+    color: #94979B;
+    text-align: center
+}
+.copy_right{
+    /* font-family: Avenir; */
+    font-family: Metropolis-Regular;
+    font-size: 12px;
+    line-height: 12px;
+    /* identical to box height */
+    color: #94979B;
+    text-align:center;
+}
+.info{
+    /* font-family: Avenir; */
+    font-family: Metropolis-Regular;
+    font-size: 16px;
+    line-height: 18px;
+    /* identical to box height */
+    color: #94979B;
+    text-align:center;
+}
+.background_sub{
+    background: #FFFFFF;
+    padding:50px;
+    border-radius: 5px;
+}
+.button_position{
+    text-align:center;
+}
+.btn-darkgreen{
+background: #9EB54D;
+border: 1px solid #9EB54D;
+color: #fff;
+border-radius: 4px;
+font-family: Avenir;
+height: 35px;
+font-size: 14px;
+transition: .3s ease-in-out;
+}
+.btn-darkgreen:hover{
+    transform: scale(1.02);
+}
+.one{
+    padding-left:10px;
+    padding-right:10px;
+}
+img{
+    width: max-content;
+}
+@media screen and (max-width: 768px) {
+.tab{
+    width:unset !important;
+}
+}
