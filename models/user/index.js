@@ -53,7 +53,12 @@ const userSchema = new Schema({
       return this.userType === 'merchant';
     },
   },
-  businessCategory: String,
+  businessCategory: {
+    type: String,
+    required() {
+      return this.userType === 'merchant';
+    },
+  },
   businessDescription: String,
   workingHours: {
     openTime: String,

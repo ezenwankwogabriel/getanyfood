@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta charset=utf-8>
+	<meta http-equiv="Content-Type" content="text/html;" />
+	<meta name=description content="">
+	<meta name=viewport content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Montserrat|Open+Sans:400,700" rel="stylesheet">
+	<style type="text/css">
+		a {
+			text-decoration: none;
+		}
+
+
+		@media screen and (max-device-width: 480px) {
+			#email_container {
+				width: 100% ! important;
+			}
+
+			div[id="imgCon"] {
+				top: -2.3em ! important;
+				left: 0 ! important;
+
+			}
+
+			.emailImg {
+				width: 80% ! important;
+				height: auto ! important;
+				max-width: 100% ! important;
+
+			}
+
+			td[class="email_sub"] {
+				padding: 20px 10px 10px 10px;
+				height: 160px;
+			}
+		}
+	</style>
+</head>
+
+<body style="margin: 0; padding: 0;-webkit-text-size-adjust:none;">
+	<table border="0" cellpadding="0" cellspacing="0" width="100%" height="100%" id="email_wrapper">
+		<tr>
+			<td align="center" valign="top">
+				<!--add an inline style property that sets the border-collapse property to collapse. If we don’t do this, newer versions of Outlook will add a small space between our table and our border.  -->
+				<table border="0" cellpadding="0" cellspacing="0" width="600" id="email_container" style=" border-collapse: collapse;">
+					<tr>
+						<td align="center" style="color:#D4AF3F; padding: 30px 0 20px 0; font-size:20px;">
+							<b> Nester </b>
+						</td>
+					</tr>
+					<tr>
+						<td class="email_sub" align="center" style="background-color:#F6F6F6; font-family: 'Montserrat', sans-serif;padding: 20px 10px 20px 10px; height: 160px;">
+							<!-- header and logo -->
+							<table border="0" cellpadding="0" cellspacing="0" width="100%" style="position: relative;">
+								<tr>
+									<td valign="center" width="50%" style="color: #262835; font-size:0.9em;" id="email_type">
+										<b>Customer Enquiry on Nester</b>
+									</td>
+									<td valign="top" style="font-size: 0; line-height: 0; width:2%;">&nbsp;</td>
+									<td valign="center" width="45%" style="position: relative;">
+										<div id="imgCon" style="position: absolute;top: -4em; left: 2em;"><img class="emailImg" src="<%= ip %>/view/email/delivery_people.png"
+											 alt="Image pickup and delivery activities" width="70%" height="auto" style="display: block; margin:auto ;" />
+										</div>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr>
+						<td style="">
+							<table border="0" cellpadding="0" cellspacing="0" width="100%" id="email_content">
+								<tr>
+									<td style="padding: 30px 20px 20px 30px;padding-bottom: 20px; font-family: 'Montserrat', sans-serif; font-size: 14px; color: #262835;">
+
+										<p> Hello <%= message %>, We are pleased to hear from you.</p>
+										<p>Your Enquiry is receiving some well deserved attention from our team. You will be notified when it is
+											resolved.</p>
+										<p>Thank You very much</p>
+										<p>Nester Team</p>
+									</td>
+								</tr>
+								<tr>
+									<td align="center" style="padding: 15px 0px; background: #F6F6F6;">
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr>
+						<td valign="middle" style="font-size: 0; line-height: 0; padding: 10px;">
+							<hr style="border: 1px solid #E7E7E7;" />
+						</td>
+					</tr>
+					<tr>
+						<td id="email_footer" align="center" style="font-family: 'Open Sans', sans-serif;">
+							<table border="0" cellpadding="0" cellspacing="0">
+								<tr>
+									<td style=" padding:0 10px; font-size:12px;"> If you got this mail by mistake, please kindly delete it. </td>
+								</tr>
+
+								<tr>
+									<td align="center" style="padding: 10px 0 0 0; font-size: 11px;">
+										&copy; Nester 2019. All rights reserved.
+									</td>
+								</tr>
+								<tr>
+									<td align="center" style="padding: 5px 5px; font-size: 11px; color: #171717;">
+										<table border="0" cellpadding="0" cellspacing="0">
+											<tr>
+												<td style="border-right: 1px solid black; padding: 0 15px 5px 10px;">
+													info@nester.com.ng
+												</td>
+												<td style="border-right: 1px solid black; padding: 0 15px 5px 10px;">
+													+234 894 6759
+												</td>
+												<td>
+													<a href="#" style="color:#171717; padding: 0 15px 5px 10px;"> Unsubscribe </a>
+												</td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+								<tr>
+									<td valign="middle" style="font-size: 0; line-height: 0; padding: 10px;">
+										<hr style="border: 1px solid #E7E7E7;" />
+									</td>
+								</tr>
+								<tr>
+									<td align="center" valign="middle" style="padding:5px 0 10px 0">
+										<table border="0" cellpadding="0" cellspacing="0">
+											<tr>
+												<td style="padding: 0 10px;"><a href="https://www.instagram.com/nesterpod/" target="_blank"><img src="<%= ip %>/view/email/instagram-logo.png"
+														 alt="Follow us on Instagram" /></a></td>
+												<td style="padding: 0 10px;"><a href="https://www.facebook.com/NesterPOD/" target="_blank"> <img src="<%= ip %>/view/email/facebook-logo.png"
+														 alt="Follow us on Facebook" /></a></td>
+												<td style="padding: 0 10px;"><a href="https://twitter.com/NesterPod" target="_blank"> <img src="<%= ip %>/view/email/twitter-logo.png" alt="Follow us on Twitter" /></a></td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+</body>
+
+</html>

@@ -1,9 +1,8 @@
 const debug = require('debug')('app:startup');
 const ejs = require('ejs');
+const sendmail = require('sendmail')();
+const config = require('config');
 const RootDir = require('../rootDir');
-const {
-  supportEmail, webHost,
-} = require('../utils');
 
 class Email {
   constructor(details) {
@@ -14,50 +13,45 @@ class Email {
 
   async getContent() {
     const {
-      email: to, name, subject, template, link,
+      email: to, template, ...rest
     } = this.details;
     const date = new Date().toDateString();
-    const ip = webHost;
-    const content = await ejs.renderFile(
-      `${RootDir}/views/${template}.ejs`,
-      {
-        to, name, subject, date, ip, link,
-      },
-    );
-    return content;
+    const ip = config.get('web_host');
+    const emailTemplate = await ejs.renderFile(`${RootDir}/views/${template}.ejs`, {
+      to, ...rest, date, ip,
+    });
+    return emailTemplate;
   }
 
   async mailjet(content) {
     /* using mailjet */
-    const { to, name, subject } = this.details;
-    const privateKey = 'bf56cb4b9ce64ceaa0149b1693b68826' || process.env.MAILJET_PRIVATE_KEY;
-    const publicKey = 'f5329092cf2c4b8a4ecebd3580451db3' || process.env.MAILJET_PUBLIC_KEY;
+    const { email: to, name, subject } = this.details;
+    const publickey = '88ebbc2d46c71d0c01e9a12a930746ce';
+    const privatekey = '4083d5cd515334023063c9e8aaed3cbe';
+
     // eslint-disable-next-line global-require
-    const mailjet = require('node-mailjet').connect(publicKey, privateKey);
+    const mailjet = require('node-mailjet').connect(publickey, privatekey);
 
     try {
-      await mailjet
-        .post('send', { version: 'v3.1' })
-        .request({
-          Messages: [
-            {
-              From: {
-                Email: this.email,
-                Name: this.appName,
-              },
-              To: [
-                {
-                  Email: to,
-                  Name: name,
-                },
-              ],
-              Subject: subject,
-              HTMLPart: content,
+      await mailjet.post('send', { version: 'v3.1' }).request({
+        Messages: [
+          {
+            From: {
+              Email: this.email,
+              Name: this.appName,
             },
-          ],
-        });
-
-      return 'Email sent Successfully';
+            To: [
+              {
+                Email: to,
+                Name: name,
+              },
+            ],
+            Subject: subject,
+            HTMLPart: content,
+          },
+        ],
+      });
+      debug(`Email sent Successfully to ${to}`);
     } catch (ex) {
       throw new Error(ex);
     }
@@ -65,20 +59,17 @@ class Email {
 
   async sendMail(content) {
     /* using sendmail */
-    const { to, name, subject } = this.details;
-    const sendmail = require('sendmail')();
-    sendmail({
-      from: supportEmail,
-      to,
-      subject,
-      html: content,
-    }, (err, reply) => {
-      // console.log(err + data + reply)
-      if (!err) {
-        return `Mail sent to ${to}`;
-      }
-      throw new Error(`Error sending mail to ${to}, ${err}`);
-    });
+    const { email: to, subject } = this.details;
+    try {
+      await sendmail({
+        from: config.get('support'),
+        to,
+        subject,
+        html: content,
+      });
+    } catch (ex) {
+      throw new Error(ex);
+    }
   }
 
   async send() {
