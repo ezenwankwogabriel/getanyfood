@@ -11,6 +11,7 @@ const Setting = require('../../models/setting');
 const WeeklyPlanner = require('../../models/planner');
 const PaymentHistory = require('../../models/payment/paymentHistory');
 const { SendNotification } = require('../../controllers/repositories/notification');
+const { Email } = require('../../utils');
 
 function search(model, query, options = {}) {
   return new Promise((resolve, reject) => {
@@ -49,6 +50,7 @@ const orderActions = {
   },
 
   async create(req, res, next) {
+    const { path } = req.query; // path for request page to view created order;
     try {
       const {
         deliveryTime, deliveryDate, endDate, startDate, ...rest
@@ -147,6 +149,15 @@ const orderActions = {
         notificationTo: merchant._id,
         notificationFrom: customer._id,
       });
+      const details = {
+        email: merchant.emailAddress,
+        subject: 'New Order',
+        content: `An order has with id ${fullOrder._id}, been placed by ${customer.fullName}`,
+        template: 'email',
+        link: `${path}?id=${fullOrder._id}`,
+        button: 'View Request',
+      };
+      Email(details).send();
       return res.success(req.planner ? req.planner : fullOrder);
     } catch (err) {
       return next(err);
@@ -482,6 +493,7 @@ const orderActions = {
         status,
         pickupTime,
       });
+      const merchant = await User.findById(req.params.id);
 
       const updatedOrder = await Order.findOne({
         _id: req.params.orderId,
@@ -498,12 +510,21 @@ const orderActions = {
           select: '-password -deleted',
         });
 
-      // SendNotification({
-      //   message: `An order has been placed by ${statusUpdate}`,
-      //   orderNumber: updatedOrder._id,
-      //   notificationTo: updatedOrder._id,
-      //   notificationFrom: req.user._id,
-      // })
+      SendNotification({
+        message: `Request with id by ${updatedOrder._id} has been updated to ${status}`,
+        orderNumber: updatedOrder._id,
+        notificationTo: updatedOrder._id,
+        notificationFrom: req.user._id,
+      });
+      const details = {
+        email: merchant.emailAddress,
+        subject: 'Request Status Update',
+        content: `Request with id by ${updatedOrder._id} has been updated to ${status}`,
+        template: 'email',
+        link: `${req.query.path}?id=${updatedOrder._id}`,
+        button: 'View Request',
+      };
+      Email(details).send();
 
       return res.success(updatedOrder);
     } catch (err) {

@@ -11,6 +11,7 @@ module.exports = (req, res, next) => {
       .max(30),
     businessAddress: Joi.string().min(3),
     businessName: Joi.string().min(3),
+    businessCategory: Joi.string().min(3),
     emailAddress: Joi.string()
       .email({ minDomainSegments: 2 })
       .required(),

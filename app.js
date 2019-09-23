@@ -33,4 +33,6 @@ const server = http.listen(port, (err) => {
   debug(`Started on -port ${port} -db: ${dbName} -env: ${envName} -url: ${host}`);
 });
 
+global.RootDir = __dirname;
+
 module.exports = server;

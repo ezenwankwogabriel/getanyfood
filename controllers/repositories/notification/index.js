@@ -3,6 +3,22 @@ const { socketIo } = require('../../../app');
 const NotificationModel = require('../../../models/notification');
 const utils = require('../../../utils');
 
+async function bulkEmail(req, res) {
+  const {
+    to, ...rest
+  } = req.body;
+  if (to && Array.isArray(to)) {
+    for (let i = 0; i < to.length; i += 1) {
+      utils.Email({
+        email: to[i].email, name: to[i].name, template: 'email', ...rest,
+      }).send();
+    }
+    return res.success();
+  }
+  return res.badRequest('"to" is not provided or of invalid type');
+}
+exports.bulkEmail = bulkEmail;
+
 async function fetchNotification({ limit, page, adminId }) {
   try {
     const req = {

@@ -6,6 +6,7 @@ class CreateUser {
     lastName,
     businessAddress,
     businessName,
+    businessCategory,
     emailAddress,
     phoneNumber,
     password,
@@ -15,6 +16,7 @@ class CreateUser {
     this.lastName = lastName;
     this.businessAddress = businessAddress;
     this.businessName = businessName;
+    this.businessCategory = businessCategory;
     this.emailAddress = emailAddress;
     this.phoneNumber = phoneNumber;
     this.password = password;
@@ -42,6 +44,7 @@ class CreateUser {
         firstName: this.firstName,
         lastName: this.lastName,
         businessAddress: this.businessAddress,
+        businessCategory: this.businessCategory,
         businessName: this.businessName,
         emailAddress: this.emailAddress,
         phoneNumber: this.phoneNumber,

@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const User = require('../../../models/user/index');
 const CreateUser = require('./createUser');
 const {
-  supportEmail, webHost, AuditTrail,
+  supportEmail, AuditTrail,
 } = require('../../../utils');
 const Email = require('../../../utils/email');
 
@@ -20,12 +20,12 @@ const userActions = {
     if (user) return res.unAuthorized('Account with email address exists');
     const newUser = await new CreateUser(body).create();
     newUser.token = await newUser.encryptPayload();
-    // const details = {
-    //   email: user.emailAddress,
-    //   subject: 'Sign Up',
-    //   template: 'signup',
-    // };
-    // Email(details).send();
+    const details = {
+      email: newUser.emailAddress,
+      subject: 'Sign Up',
+      template: 'signup',
+    };
+    Email(details).send();
     return res.success(newUser);
   },
 
@@ -50,7 +50,9 @@ const userActions = {
     const details = {
       email: user.emailAddress,
       subject: 'Password Reset GetAnyFood',
-      content: `Link to reset of GetAnyFood password account \n ${webHost}/${path}/${user.token}`,
+      content: `Link to reset of GetAnyFood password account \n ${path}/${user.token}`,
+      link: `${path}/${user.token}`,
+      button: 'Reset Password',
       template: 'email',
     };
     Email(details).send();
@@ -64,9 +66,11 @@ const userActions = {
     }
     const details = {
       email: req.user.emailAddress,
-      subject: 'Password Reset Jaiye',
-      contents: `Link to reset of Jaiye password account \n ${webHost}/${path}/${req.user.token}`,
+      subject: 'Password Reset GetAnyFood',
+      content: `Link to reset of GetAnyFood password account \n ${path}/${req.user.token}`,
       template: 'email',
+      link: `${path}/${req.user.token}`,
+      button: 'Reset Password',
     };
     Email(details).send();
     return res.success('Reset Link Sent to Your Email');
@@ -103,6 +107,8 @@ const userActions = {
       subject: 'Password reset',
       email: user.emailAddress,
       content: `You are receiving this because you (or someone else) has changed the password for your account on http://${req.headers.host}.\n\n If you did not request this, please reset your password or contact ${supportEmail} for further actions.\n`,
+      link: '/login',
+      button: 'Login',
       template: 'email',
     };
     Email(details).send();
