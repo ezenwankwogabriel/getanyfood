@@ -88,6 +88,7 @@ const userSchema = new Schema({
     price: String,
   },
   walletAmount: { type: Number, default: 0 },
+  orderCount: { type: Number, default: 0 },
   password: { type: String, set: encryptPassword, required: true },
   userType: {
     type: String,

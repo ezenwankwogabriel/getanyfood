@@ -24,6 +24,7 @@ require('./startup/expressInstanceMethods')(app); // express instance methods
 exports.socketIo = io; // initialized before the router files are
 require('./controllers/repositories/notification');
 require('./startup/index')(app); // startup files
+require('./utils/orderNotification');
 
 const server = http.listen(port, (err) => {
   if (err) {
