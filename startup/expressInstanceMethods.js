@@ -1,29 +1,36 @@
+
+function goodResponse(message) {
+  return { status: true, message };
+}
+function badResponse(message) {
+  return { status: false, message };
+}
+
 class Instances {
-  success(data) {
-    this.status(200).send(data);
+  success(message) {
+    this.status(200).json(goodResponse(message));
   }
 
   unAuthenticated(message) {
-    this.status(401).send(message); // unanthenticated
+    this.status(401).json(badResponse(message)); // unanthenticated
   }
 
   paymentRequired(message) {
-    this.status(402).send(message); // payment required
+    this.status(402).json(badResponse(message)); // payment required
   }
 
   badRequest(message) {
-    this.status(400).send(message); // bad request
+    this.status(400).json(badResponse(message)); // bad request
   }
 
   unAuthorized(message) {
-    this.status(403).send(message); // unathorized
+    this.status(403).json(badResponse(message)); // unathorized
   }
 
   notFound(message) {
-    this.status(404).send(message);
+    this.status(404).json(badResponse(message));
   }
 }
-
 
 function expressInstances(app) {
   const instance = new Instances();
