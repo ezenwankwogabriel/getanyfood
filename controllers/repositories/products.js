@@ -50,14 +50,20 @@ const productActions = {
 
     async showAll(req, res, next) {
       const queryOptions = {
-        populate: [{
-          path: 'merchant',
-          model: User,
-          select: '-password -deleted',
-        }],
+        populate: [
+          {
+            path: 'merchant',
+            model: User,
+            select: '-password -deleted',
+          },
+        ],
       };
       try {
-        const products = await utils.PaginateRequest(req, queryOptions, ProductCategory);
+        const products = await utils.PaginateRequest(
+          req,
+          queryOptions,
+          ProductCategory,
+        );
         res.success(products);
       } catch (err) {
         next(err);
@@ -190,20 +196,28 @@ const productActions = {
       const queryOptions = {
         merchant: req.params.id,
         type: 'combo',
-        populate: [{
-          path: 'merchant',
-          model: User,
-          select: '-password -deleted',
-        }, {
-          path: 'comboProducts.product',
-          model: Product,
-        }, {
-          path: 'category',
-          model: ProductCategory,
-        }],
+        populate: [
+          {
+            path: 'merchant',
+            model: User,
+            select: '-password -deleted',
+          },
+          {
+            path: 'comboProducts.product',
+            model: Product,
+          },
+          {
+            path: 'category',
+            model: ProductCategory,
+          },
+        ],
       };
       try {
-        const products = await utils.PaginateRequest(req, queryOptions, Product);
+        const products = await utils.PaginateRequest(
+          req,
+          queryOptions,
+          Product,
+        );
 
         res.success(products);
       } catch (err) {
@@ -281,14 +295,17 @@ const productActions = {
     const queryOptions = {
       merchant: req.params.id,
       category: req.params.categoryId,
-      populate: [{
-        path: 'merchant',
-        model: User,
-        select: '-password -deleted',
-      }, {
-        path: 'category',
-        model: ProductCategory,
-      }],
+      populate: [
+        {
+          path: 'merchant',
+          model: User,
+          select: '-password -deleted',
+        },
+        {
+          path: 'category',
+          model: ProductCategory,
+        },
+      ],
     };
     try {
       const products = await utils.PaginateRequest(req, queryOptions, Product);
@@ -297,7 +314,6 @@ const productActions = {
       next(err);
     }
   },
-
 
   async update(req, res, next) {
     try {
@@ -457,6 +473,30 @@ const productActions = {
       );
 
       res.success(stats);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async showAll(req, res, next) {
+    const queryOptions = {
+      merchant: req.params.id,
+      type: 'single',
+      populate: [
+        {
+          path: 'merchant',
+          model: User,
+          select: '-password -deleted',
+        },
+        {
+          path: 'category',
+          model: ProductCategory,
+        },
+      ],
+    };
+    try {
+      const products = utils.PaginateRequest(req, queryOptions, Product);
+      res.success(products);
     } catch (err) {
       next(err);
     }
