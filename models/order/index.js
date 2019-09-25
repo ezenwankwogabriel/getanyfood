@@ -13,6 +13,12 @@ const orderSchema = new Schema(
       deliveryDate: { type: Date },
       deliveryTime: { type: String },
     },
+    delayedOrder: {
+      type: Number,
+      default: 0,
+      // 0=default 1=email sent for delay on pending 2=email sent for delay on completion
+      enum: [0, 1, 2],
+    },
     status: {
       type: String,
       enum: ['rejected', 'pending', 'accepted', 'completed'],

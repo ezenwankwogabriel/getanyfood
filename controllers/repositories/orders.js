@@ -550,7 +550,7 @@ const orderActions = {
             const userQuery = planner.orders.map(order => ({
               updateOne: {
                 filter: { _id: order.merchant },
-                update: { $inc: { walletAmount: order.price } },
+                update: { $inc: { walletAmount: order.price, orderCount: 1 } },
               },
             }));
             const paymentQuery = planner.orders.map(order => ({
