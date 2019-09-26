@@ -496,7 +496,7 @@ const productActions = {
       ],
     };
     try {
-      const products = utils.PaginateRequest(req, queryOptions, Product);
+      const products = await utils.PaginateRequest(req, queryOptions, Product);
       res.success(products);
     } catch (err) {
       next(err);
