@@ -31,6 +31,10 @@ router.get('/:id/products/stock', Product.showStock);
 
 router.get('/:id/products/stats', Product.showStats);
 
+router.get('/:id/products', Product.showAll);
+
+router.get('/:id/products/:productId', Product.scopeRequest, Product.showOne);
+
 router.get('/:id/products/:productId/stats', Product.showStat);
 
 router.get('/:id/orders', Order.showAllByMerchant);
