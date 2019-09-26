@@ -27,16 +27,6 @@ router.get('/:id/orders/comments', Order.showComments);
 
 router.get('/:id/customers/ranking', Order.showCustomerRanking);
 
-router.get('/:id/products/stock', Product.showStock);
-
-router.get('/:id/products/stats', Product.showStats);
-
-router.get('/:id/products', Product.showAll);
-
-router.get('/:id/products/:productId', Product.scopeRequest, Product.showOne);
-
-router.get('/:id/products/:productId/stats', Product.showStat);
-
 router.get('/:id/orders', Order.showAllByMerchant);
 
 router.use('/:id/orders/:orderId', Order.scopeRequest);
@@ -68,28 +58,24 @@ router.get(
   Product.showAllInCategory,
 );
 
-router.use(
-  '/:id/product-categories/:categoryId/products/:productId',
-  Product.scopeRequest,
-);
+router.get('/:id/products/stock', Product.showStock);
 
-router.get(
-  '/:id/product-categories/:categoryId/products/:productId',
-  Product.showOne,
-);
+router.get('/:id/products/stats', Product.showStats);
 
-router.put(
-  '/:id/product-categories/:categoryId/products/:productId',
-  Product.update,
-);
+router.get('/:id/products', Product.showAll);
 
-router.post(
-  '/:id/product-categories/:categoryId/products/:productId/sub-products',
-  Product.SubProduct.create,
-);
+router.get('/:id/products/:productId/stats', Product.showStat);
+
+router.use('/:id/products/:productId', Product.scopeRequest);
+
+router.get('/:id/products/:productId', Product.showOne);
+
+router.put('/:id/products/:productId', Product.update);
+
+router.post('/:id/products/:productId/sub-products', Product.SubProduct.create);
 
 router.put(
-  '/:id/product-categories/:categoryId/products/:productId/sub-products/:subProductId',
+  '/:id/products/:productId/sub-products/:subProductId',
   Product.SubProduct.update,
 );
 
