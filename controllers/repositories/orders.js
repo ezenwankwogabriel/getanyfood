@@ -543,7 +543,7 @@ const orderActions = {
         if (event === 'charge.success') {
           const { reference } = data;
           if (reference.indexOf('000') > -1) { // weekly planner payment
-            const planner = await WeeklyPlanner.fineOne({ reference: data.reference });
+            const planner = await WeeklyPlanner.findOne({ reference: data.reference });
             const orderNumbers = planner.orders.map(order => order.orderNumber);
             planner.priceTotal = 0;
             planner.payment.status = data.status;
