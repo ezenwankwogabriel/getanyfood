@@ -50,6 +50,7 @@ const productActions = {
 
     async showAll(req, res, next) {
       const queryOptions = {
+        merchant: req.params.id,
         populate: [
           {
             path: 'merchant',
