@@ -9,13 +9,31 @@ module.exports = class AuditTrail {
       userType: 'merchant',
       deleted: 0,
       status: 1,
-      select: ['businessName', 'businessAddress', 'emailAddress', 'phoneNumber', 'workingHours', 'profilePhoto', 'profileThumbnail', 'businessDescription', 'businessCategory'],
+      select: [
+        'businessName',
+        'businessAddress',
+        'emailAddress',
+        'phoneNumber',
+        'workingHours',
+        'profilePhoto',
+        'profileThumbnail',
+        'businessDescription',
+        'businessCategory',
+        'delivery',
+      ],
     };
     if (req.query.name) query.businessName = new RegExp(req.query.name);
     if (req.query.category) query.businessCategory = new RegExp(req.query.category);
 
     const vendors = await utils.PaginateRequest(req, query, UserModel);
-    return res.success(vendors);
+    const ratedVendors = await Promise.all(
+      vendors.docs.map(async (vendor) => {
+        // eslint-disable-next-line
+        vendor._doc.rating = await vendor.getMerchantRating();
+        return vendor;
+      }),
+    );
+    return res.success(ratedVendors);
   }
 
   static async vendorProducts(req, res) {
@@ -25,12 +43,15 @@ module.exports = class AuditTrail {
     } = req.query;
     const query = {
       merchant,
-      populate: [{
-        path: 'merchant',
-        select: '-password -deleted',
-      }, {
-        path: 'category',
-      }],
+      populate: [
+        {
+          path: 'merchant',
+          select: '-password -deleted',
+        },
+        {
+          path: 'category',
+        },
+      ],
       sort: { rating: 1 },
     };
     if (name) query.name = new RegExp(name);

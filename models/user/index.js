@@ -28,7 +28,9 @@ const userSchema = new Schema({
   businessName: {
     type: String,
     minlength: 3,
-    required() { return this.userType === 'merchant'; },
+    required() {
+      return this.userType === 'merchant';
+    },
   },
   emailAddress: {
     type: String,
@@ -85,7 +87,18 @@ const userSchema = new Schema({
       enum: ['self', 'getanyfood'],
       default: 'getanyfood',
     },
-    price: String,
+    price: {
+      type: String,
+      required() {
+        return this.delivery.method === 'self';
+      },
+    },
+    time: {
+      type: Number,
+      required() {
+        return this.userType === 'merchant';
+      },
+    },
   },
   walletAmount: { type: Number, default: 0 },
   orderCount: { type: Number, default: 0 },
