@@ -79,11 +79,38 @@ const userActions = {
       return res.badRequest('Enter your current password correctly');
     }
 
+    const data = {};
+    Object.keys(req.body)
+      .filter((key) => {
+        const nonEmptyField = !!req.body[key];
+        const validField = [
+          'firstName',
+          'lastName',
+          'businessName',
+          'businessDescription',
+          'businessAddress',
+          'businessCategory',
+          'emailAddress',
+          'phoneNumber',
+          'location',
+          'delivery',
+          'password',
+          'profilePhoto',
+          'profileThumbnail',
+        ].includes(key);
+        const nameField = ['lastName'].includes(key);
+        return validField && (nonEmptyField || nameField);
+      })
+      .map((key) => {
+        data[key] = req.body[key];
+        return key;
+      });
+
     try {
       const updatedUser = await User.findByIdAndUpdate(
         req.scopedUser.id,
         {
-          ...req.body,
+          ...data,
           updated_time: new Date(),
         },
         { new: true, select: '-password -deleted' },
