@@ -31,8 +31,14 @@ const userActions = {
       };
 
       const merchants = await utils.PaginateRequest(req, queryOptions, User);
+      const ratedMerchants = await Promise.all(
+        merchants.map(async (merchant) => {
+          merchant._doc.rating = await merchant.getMerchantRating();
+          return merchant;
+        }),
+      );
 
-      res.success(merchants);
+      res.success(ratedMerchants);
     } catch (err) {
       next(err);
     }
