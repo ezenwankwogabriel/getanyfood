@@ -96,7 +96,7 @@ const userSchema = new Schema({
     time: {
       type: Number,
       required() {
-        return this.userType === 'merchant';
+        return this.delivery.method === 'self';
       },
     },
   },
