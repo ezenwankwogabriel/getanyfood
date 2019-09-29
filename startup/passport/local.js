@@ -12,10 +12,10 @@ function local(User) {
           return done(err);
         }
         if (!user) {
-          return done(null, false);
+          return done('username or password is incorrect', false);
         }
         if (!user.verifyPassword(password)) {
-          return done(null, false);
+          return done('username or password is incorrect', false);
         }
         return done(null, user);
       },
