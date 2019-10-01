@@ -44,14 +44,15 @@ const userActions = {
   forgotPassword: async (req, res) => {
     const buf = crypto.randomBytes(20);
     const { user } = req;
-    const path = req.body.path || 'resetPassword';
+    const path = req.body.path || process.env.FORGOT_PASSWORD_PATH;
+    const url = `https://www.getanyfood.com/${path}/${user.token}`;
     user.token = buf.toString('hex');
     await user.save();
     const details = {
       email: user.emailAddress,
       subject: 'Password Reset GetAnyFood',
-      content: `Link to reset of GetAnyFood password account \n ${path}/${user.token}`,
-      link: `${path}/${user.token}`,
+      content: `Link to reset of GetAnyFood password account \n ${url}`,
+      link: `${url}`,
       button: 'Reset Password',
       template: 'email',
     };
@@ -60,16 +61,17 @@ const userActions = {
   },
 
   resendPassword: (req, res) => {
-    const path = req.body.path || 'resetPassword';
+    const path = req.body.path || process.env.FORGOT_PASSWORD_PATH;
     if (!req.user.token) {
       return res.badRequest('Use the Reset Password route');
     }
+    const url = `https://www.getanyfood.com/${path}/${user.token}`;
     const details = {
       email: req.user.emailAddress,
       subject: 'Password Reset GetAnyFood',
-      content: `Link to reset of GetAnyFood password account \n ${path}/${req.user.token}`,
+      content: `Link to reset of GetAnyFood password account \n ${url}`,
       template: 'email',
-      link: `${path}/${req.user.token}`,
+      link: `${url}`,
       button: 'Reset Password',
     };
     Email(details).send();

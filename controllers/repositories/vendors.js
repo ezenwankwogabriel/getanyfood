@@ -39,7 +39,7 @@ module.exports = class AuditTrail {
   static async vendorProducts(req, res) {
     const { vendorId: merchant } = req.params;
     const {
-      name, from, to, type,
+      name, from, to, type, category,
     } = req.query;
     const query = {
       merchant,
@@ -54,7 +54,8 @@ module.exports = class AuditTrail {
       ],
       sort: { rating: 1 },
     };
-    if (name) query.name = new RegExp(name);
+    if (category) query.category = category;
+    if (name) query.businessName = new RegExp(name);
     if (from && to) query.price = { $gt: from, $lt: to };
     if (type === 'freeDelivery') query.deliveryType = 'free';
     if (type === 'maxDiscount') query.sort = { discount: 1 };
