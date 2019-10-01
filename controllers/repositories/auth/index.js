@@ -45,8 +45,8 @@ const userActions = {
     const buf = crypto.randomBytes(20);
     const { user } = req;
     const path = req.body.path || process.env.FORGOT_PASSWORD_PATH;
-    const url = `https://www.getanyfood.com/${path}/${user.token}`;
     user.token = buf.toString('hex');
+    const url = `https://www.getanyfood.com/${path}/${user.token}`;
     await user.save();
     const details = {
       email: user.emailAddress,
