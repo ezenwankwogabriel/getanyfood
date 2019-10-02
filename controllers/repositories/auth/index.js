@@ -45,8 +45,9 @@ const userActions = {
     const buf = crypto.randomBytes(20);
     const { user } = req;
     const path = req.body.path || process.env.FORGOT_PASSWORD_PATH;
+    const webUrl = process.env.WEB_URL;
     user.token = buf.toString('hex');
-    const url = `https://getanyfood.com/${path}/${user.token}`;
+    const url = `${webUrl}/${path}/${user.token}`;
     await user.save();
     const details = {
       email: user.emailAddress,
@@ -62,10 +63,11 @@ const userActions = {
 
   resendPassword: (req, res) => {
     const path = req.body.path || process.env.FORGOT_PASSWORD_PATH;
+    const webUrl = process.env.WEB_URL;
     if (!req.user.token) {
       return res.badRequest('Use the Reset Password route');
     }
-    const url = `https://www.getanyfood.com/${path}/${user.token}`;
+    const url = `${webUrl}/${path}/${req.user.token}`;
     const details = {
       email: req.user.emailAddress,
       subject: 'Password Reset GetAnyFood',
