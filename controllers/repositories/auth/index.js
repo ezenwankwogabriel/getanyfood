@@ -54,7 +54,7 @@ const userActions = {
       subject: 'Password Reset GetAnyFood',
       content: `Link to reset of GetAnyFood password account \n ${url}`,
       link: `${url}`,
-      button: 'Reset Password',
+      buttonText: 'Reset Password',
       template: 'email',
     };
     Email(details).send();
@@ -74,7 +74,7 @@ const userActions = {
       content: `Link to reset of GetAnyFood password account \n ${url}`,
       template: 'email',
       link: `${url}`,
-      button: 'Reset Password',
+      buttonText: 'Reset Password',
     };
     Email(details).send();
     return res.success('Reset Link Sent to Your Email');
@@ -106,13 +106,13 @@ const userActions = {
     if (!user) {
       return res.badRequest('Invalid token provided');
     }
-
+    const url = `${process.env.WEB_URL}/login`;
     const details = {
       subject: 'Password reset',
       email: user.emailAddress,
       content: `You are receiving this because you (or someone else) has changed the password for your account on http://${req.headers.host}.\n\n If you did not request this, please reset your password or contact ${supportEmail} for further actions.\n`,
-      link: '/login',
-      button: 'Login',
+      link: url,
+      buttonText: 'Login',
       template: 'email',
     };
     Email(details).send();
