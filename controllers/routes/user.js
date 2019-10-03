@@ -12,6 +12,6 @@ Router.put('/actionOnUser/:id/:action', userManagement, UserController.actionOnU
 Router.get('/getByToken', UserController.userByToken);
 Router.get('/getById/:id', UserController.userById);
 Router.get('/getAll', UserController.userByAdminId);
-Router.get('/merchants', validateIsAdminUser, UserController.allMerchant);
+Router.get('/:type', validateIsAdminUser, UserController.allUsers);
 
 module.exports = Router;
