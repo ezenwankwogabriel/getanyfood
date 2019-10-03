@@ -69,13 +69,30 @@ module.exports = class CreateSubUser {
     res.success(users);
   }
 
-  static async allMerchant(req, res) {
-    const query = { userType: 'merchant' };
-    if (req.query.company) query.businessName = req.query.company;
+  static async allUsers(req, res) {
+    const { type } = req.params;
+    if (type !== 'merchant' && type !== 'customer') return res.failed('invalid user type');
+    const query = { userType: type };
+    if (req.query.name) {
+      query.$or = [
+        { firstName: new RegExp(req.query.name) },
+        { lastName: new RegExp(req.query.name) },
+      ];
+    }
+    if (req.query.company) query.businessName = new RegExp(req.query.company);
     if (req.query.status) query.status = req.query.status === 'active' ? 1 : 0;
-    if (req.query.emailAddress) query.emailAddress = req.query.emailAddress;
+    if (req.query.emailAddress) query.emailAddress = new RegExp(req.query.emailAddress);
+    if (req.query.businessName) query.businessName = new RegExp(req.query.businessName);
+    if (req.query.adminId) {
+      query.adminId = req.query.adminId;
+      query.userType = 'sub_merchant';
+    }
+    if (req.query.endDate && req.query.startDate) {
+      query.updated_time = { $gte: req.query.startDate };
+      query.updated_time = { $lte: req.query.endDate };
+    }
 
     const users = await utils.PaginateRequest(req, query, UserModel);
-    res.success(users);
+    return res.success(users);
   }
 };
