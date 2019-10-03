@@ -336,7 +336,7 @@ const orderActions = {
           const customer = await User.findById(customerId, '-password -deleted');
           return {
             customer,
-            orderCount: groupedOrders[customer].length,
+            orderCount: groupedOrders[customerId].length,
           };
         }),
       );
