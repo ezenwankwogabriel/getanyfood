@@ -10,7 +10,9 @@ const Order = require('../../models/order');
 const Setting = require('../../models/setting');
 const WeeklyPlanner = require('../../models/planner');
 const PaymentHistory = require('../../models/payment/paymentHistory');
-const { SendNotification } = require('../../controllers/repositories/notification');
+const {
+  SendNotification,
+} = require('../../controllers/repositories/notification');
 const { Email } = require('../../utils');
 
 function search(model, query, options = {}) {
@@ -53,7 +55,11 @@ const orderActions = {
     const { path } = req.query; // path for request page to view created order;
     try {
       const {
-        deliveryTime, deliveryDate, endDate, startDate, ...rest
+        deliveryTime,
+        deliveryDate,
+        endDate,
+        startDate,
+        ...rest
       } = req.body;
       const order = new Order({
         ...rest,
@@ -103,7 +109,9 @@ const orderActions = {
         User.findById(req.user.id),
         Setting.findOne(),
       ]);
-      const price = merchant.delivery.method === 'self' ? merchant.delivery.price : settings.deliveryCharge;
+      const price = merchant.delivery.method === 'self'
+        ? merchant.delivery.price
+        : settings.deliveryCharge;
       if (req.planner) {
         req.planner.orders.price = price;
         req.planner.priceTotal += priceTotal;
@@ -127,7 +135,9 @@ const orderActions = {
             ...req.body.delivery,
             price,
           },
-          payment: { accessCode: req.planner ? '' : transaction.data.access_code },
+          payment: {
+            accessCode: req.planner ? '' : transaction.data.access_code,
+          },
         },
         { new: true },
       )
@@ -179,7 +189,11 @@ const orderActions = {
       ],
     };
     try {
-      const plans = await utils.PaginateRequest(req, queryOptions, WeeklyPlanner);
+      const plans = await utils.PaginateRequest(
+        req,
+        queryOptions,
+        WeeklyPlanner,
+      );
       return res.success(plans);
     } catch (ex) {
       return next(ex);
@@ -317,14 +331,15 @@ const orderActions = {
 
       const groupedOrders = groupBy(orders, 'customer');
 
-      const result = [];
-
-      Object.keys(groupedOrders).forEach((customer) => {
-        result.push({
-          customer,
-          orderCount: groupedOrders[customer].length,
-        });
-      });
+      const result = await Promise.all(
+        Object.keys(groupedOrders).map(async (customerId) => {
+          const customer = await User.findById(customerId);
+          return {
+            customer,
+            orderCount: groupedOrders[customerId].length,
+          };
+        }),
+      );
 
       const stats = sortBy(result, 'orderCount').reverse();
 
@@ -485,7 +500,6 @@ const orderActions = {
     }
   },
 
-  // eslint-disable-next-line consistent-return
   async update(req, res, next) {
     const { status, pickupTime } = req.body;
     try {
@@ -542,8 +556,11 @@ const orderActions = {
         const { event, data } = req.body;
         if (event === 'charge.success') {
           const { reference } = data;
-          if (reference.indexOf('000') > -1) { // weekly planner payment
-            const planner = await WeeklyPlanner.findOne({ reference: data.reference });
+          if (reference.indexOf('000') > -1) {
+            // weekly planner payment
+            const planner = await WeeklyPlanner.findOne({
+              reference: data.reference,
+            });
             const orderNumbers = planner.orders.map(order => order.orderNumber);
             planner.priceTotal = 0;
             planner.payment.status = data.status;
@@ -564,7 +581,8 @@ const orderActions = {
             await Promise.all([
               User.bulkWrite(userQuery), // update walletAmount for merchants
               PaymentHistory.bulkWrite(paymentQuery), // create payment record for individual orders
-              Order.update( // update individual order payment status
+              Order.update(
+                // update individual order payment status
                 { _id: { $in: orderNumbers } },
                 { payment: { status: data.status } },
               ),
@@ -582,11 +600,9 @@ const orderActions = {
             await Promise.all([
               order.save(), // update order payment status
               payment.save(), // create payment record for this order
-              User.findByIdAndUpdate(
-                merchant, {
-                  $inc: { walletAmount: priceTotal },
-                },
-              ), // update user walletAmount for this merchant
+              User.findByIdAndUpdate(merchant, {
+                $inc: { walletAmount: priceTotal },
+              }), // update user walletAmount for this merchant
             ]);
           }
         }
