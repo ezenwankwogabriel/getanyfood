@@ -1,5 +1,6 @@
 const UserModel = require('../../models/user');
 const ProductModel = require('../../models/product');
+const ProductCategoryModel = require('../../models/product/category');
 const utils = require('../../utils/index');
 const VendorModel = require('../../models/user/vendorType');
 
@@ -34,6 +35,18 @@ module.exports = class AuditTrail {
       }),
     );
     return res.success(ratedVendors);
+  }
+
+  static async vendorCategories(req, res) {
+    const { vendorId: merchant } = req.params;
+    const { name } = req.query;
+    const query = {
+      merchant,
+      populate: [{ path: 'merchant', select: '-password -deleted' }],
+    };
+    if (name) query.name = new RegExp(name);
+    const categories = await utils.PaginateRequest(req, query, ProductCategoryModel);
+    res.success(categories);
   }
 
   static async vendorProducts(req, res) {
