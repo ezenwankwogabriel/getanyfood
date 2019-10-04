@@ -33,6 +33,7 @@ const userActions = {
       const merchants = await utils.PaginateRequest(req, queryOptions, User);
       const ratedMerchants = await Promise.all(
         merchants.map(async (merchant) => {
+          // eslint-disable-next-line no-underscore-dangle,no-param-reassign
           merchant._doc.rating = await merchant.getMerchantRating();
           return merchant;
         }),
@@ -94,6 +95,7 @@ const userActions = {
           'phoneNumber',
           'location',
           'delivery',
+          'bankDetails',
           'password',
           'profilePhoto',
           'profileThumbnail',
