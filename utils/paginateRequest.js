@@ -9,6 +9,7 @@ async function paginateRequest(req, query, Model) {
     const dbQuery = { ...query };
     delete dbQuery.populate;
     delete dbQuery.select;
+    delete dbQuery.sort;
 
     const paginateOptions = {
       select: query.select || ['-password'],

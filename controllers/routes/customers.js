@@ -59,6 +59,8 @@ router.get('/:id/vendors', Vendor.vendorList);
 
 router.get('/:id/vendor/:vendorId/products', Vendor.vendorProducts);
 
+router.get('/:id/vendor/:vendorId/categories', Vendor.vendorCategories);
+
 router.post(
   '/:id/vendor/recommend',
   verifyRecommendVendor,

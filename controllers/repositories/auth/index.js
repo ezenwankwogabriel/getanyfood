@@ -44,15 +44,17 @@ const userActions = {
   forgotPassword: async (req, res) => {
     const buf = crypto.randomBytes(20);
     const { user } = req;
-    const path = req.body.path || 'resetPassword';
+    const path = req.body.path || process.env.FORGOT_PASSWORD_PATH;
+    const webUrl = process.env.WEB_URL;
     user.token = buf.toString('hex');
+    const url = `${webUrl}/${path}/${user.token}`;
     await user.save();
     const details = {
       email: user.emailAddress,
       subject: 'Password Reset GetAnyFood',
-      content: `Link to reset of GetAnyFood password account \n ${path}/${user.token}`,
-      link: `${path}/${user.token}`,
-      button: 'Reset Password',
+      content: `Link to reset of GetAnyFood password account \n ${url}`,
+      link: `${url}`,
+      buttonText: 'Reset Password',
       template: 'email',
     };
     Email(details).send();
@@ -60,17 +62,19 @@ const userActions = {
   },
 
   resendPassword: (req, res) => {
-    const path = req.body.path || 'resetPassword';
+    const path = req.body.path || process.env.FORGOT_PASSWORD_PATH;
+    const webUrl = process.env.WEB_URL;
     if (!req.user.token) {
       return res.badRequest('Use the Reset Password route');
     }
+    const url = `${webUrl}/${path}/${req.user.token}`;
     const details = {
       email: req.user.emailAddress,
       subject: 'Password Reset GetAnyFood',
-      content: `Link to reset of GetAnyFood password account \n ${path}/${req.user.token}`,
+      content: `Link to reset of GetAnyFood password account \n ${url}`,
       template: 'email',
-      link: `${path}/${req.user.token}`,
-      button: 'Reset Password',
+      link: `${url}`,
+      buttonText: 'Reset Password',
     };
     Email(details).send();
     return res.success('Reset Link Sent to Your Email');
@@ -102,13 +106,13 @@ const userActions = {
     if (!user) {
       return res.badRequest('Invalid token provided');
     }
-
+    const url = `${process.env.WEB_URL}/login`;
     const details = {
       subject: 'Password reset',
       email: user.emailAddress,
       content: `You are receiving this because you (or someone else) has changed the password for your account on http://${req.headers.host}.\n\n If you did not request this, please reset your password or contact ${supportEmail} for further actions.\n`,
-      link: '/login',
-      button: 'Login',
+      link: url,
+      buttonText: 'Login',
       template: 'email',
     };
     Email(details).send();
