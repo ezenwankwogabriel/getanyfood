@@ -34,7 +34,13 @@ const orderSchema = new Schema(
     items: [
       {
         product: { type: ObjectId, ref: 'Product', required: true },
-        subProduct: { type: ObjectId, ref: 'Product.subProduct' },
+        subProduct: { type: ObjectId, ref: 'Product.subProducts' },
+        comboProducts: [
+          {
+            group: { type: ObjectId, ref: 'Product.comboProducts' },
+            choice: { type: ObjectId, ref: 'Product.comboProducts.options' },
+          },
+        ],
         count: { type: Number, min: 1, default: 1 },
       },
     ],

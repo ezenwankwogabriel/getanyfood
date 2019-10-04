@@ -17,26 +17,19 @@ async function getPriceTotal(order) {
 
       if (product.type === 'combo') {
         const discount = product.discount || 0;
-        const itemPrices = await Promise.all(
-          product.comboProducts.map(
-            async ({ product: productId, subProduct, count = 1 }) => {
-              const { type, price, subProducts } = await Product.findById(
-                productId,
-              );
-              if (type === 'combo') {
-                throw new Error('Cannot nest combo products');
-              }
-              if (subProduct) {
-                const { priceDifference } = subProducts.id(subProduct);
-                return (price + priceDifference) * count;
-              }
-              return price * count;
-            },
-          ),
+        const itemPrices = item.comboProducts.map((comboProduct) => {
+          const group = product.comboProducts.id(comboProduct.group);
+          const choice = group.options.id(comboProduct.choice);
+
+          return choice.priceIncrement;
+        });
+
+        const choiceAdjustedPrice = itemPrices.reduce(
+          (total, value) => total + value,
+          product.price,
         );
 
-        const comboPrice = itemPrices.reduce((total, value) => total + value, 0)
-          * ((100 - discount) / 100);
+        const comboPrice = choiceAdjustedPrice * ((100 - discount) / 100);
 
         return comboPrice * item.count;
       }

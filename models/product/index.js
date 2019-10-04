@@ -17,8 +17,31 @@ const subProductSchema = new Schema(
   { _id: true },
 );
 
+const comboProductOptionSchema = new Schema(
+  {
+    name: { type: String, trim: true },
+    priceIncrement: { type: Number, min: 0, default: 0 },
+    calories: { type: Number },
+  },
+  { _id: true },
+);
+
+const comboProductSchema = new Schema(
+  {
+    title: {
+      type: String,
+      trim: true,
+      required() {
+        return this.type === 'combo';
+      },
+    },
+    options: [comboProductOptionSchema],
+  },
+  { _id: true },
+);
+
 const productSchema = new Schema({
-  type: { type: String, enum: ['single', 'combo'] },
+  type: { type: String, lowercase: true, enum: ['single', 'combo'] },
   category: { type: ObjectId, ref: 'ProductCategory' },
   name: { type: String, required: true },
   description: { type: String, required: true },
@@ -28,7 +51,12 @@ const productSchema = new Schema({
     required: true,
   },
   calories: Number,
-  discount: { type: Number, min: 0, max: 100 },
+  discount: {
+    type: Number,
+    min: 0,
+    max: 100,
+    default: 0,
+  },
   rating: {
     type: Number,
     min: 0,
@@ -44,22 +72,7 @@ const productSchema = new Schema({
       subProducts: [ObjectId],
     },
   ],
-  comboProducts: [
-    {
-      product: {
-        type: ObjectId,
-        ref: 'Product',
-        required() {
-          return this.type === 'combo';
-        },
-      },
-      subProduct: {
-        type: ObjectId,
-        ref: 'Product.subProducts',
-      },
-      count: { type: Number, min: 1, default: 1 },
-    },
-  ],
+  comboProducts: [comboProductSchema],
   unitsAvailablePerDay: Number,
   merchant: { type: ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now, required: true },
