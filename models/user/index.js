@@ -67,6 +67,7 @@ const userSchema = new Schema({
     closeTime: String,
   },
   location: {
+    state: String,
     city: String,
     area: String,
     address: String,
@@ -75,6 +76,7 @@ const userSchema = new Schema({
   },
   delivery: {
     location: {
+      state: String,
       city: String,
       area: String,
       address: String,
@@ -84,6 +86,7 @@ const userSchema = new Schema({
     instructions: String,
     method: {
       type: String,
+      lowercase: true,
       enum: ['self', 'getanyfood'],
       default: 'getanyfood',
     },
@@ -105,6 +108,7 @@ const userSchema = new Schema({
   password: { type: String, set: encryptPassword, required: true },
   userType: {
     type: String,
+    lowercase: true,
     enum: ['super_admin', 'merchant', 'customer', 'sub_admin', 'sub_merchant'],
   },
   isAdmin: {
@@ -155,6 +159,10 @@ const userSchema = new Schema({
     default() {
       return this.userType === 'super_admin';
     },
+  },
+  bankDetails: {
+    bankName: { type: String, trim: true },
+    accountNumber: { type: String, minlength: 10, maxlength: 10 },
   },
 });
 
