@@ -12,6 +12,8 @@ router.use('/:id', Ticket.scopeRequest);
 
 router.get('/:id', Ticket.showOne);
 
+router.put('/:id', Ticket.update);
+
 router.get('/:id/messages', Ticket.showMessages);
 
 router.post('/:id/messages', Ticket.createMessage);
