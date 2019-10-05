@@ -3,7 +3,7 @@ const Ticket = require('../../models/ticket');
 const utils = require('../../utils');
 
 const ticketActions = {
-  scopeRequest: async (req, res, next) => {
+  async scopeRequest(req, res, next) {
     try {
       const ticket = await Ticket.findById(req.params.id)
         .populate({
@@ -21,13 +21,13 @@ const ticketActions = {
 
       req.scopedTicket = ticket;
 
-      next();
+      return next();
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 
-  scopeRequestByCreator: async (req, res, next) => {
+  async scopeRequestByCreator(req, res, next) {
     try {
       const ticket = await Ticket.findOne({
         createdBy: req.params.id,
@@ -48,13 +48,13 @@ const ticketActions = {
 
       req.scopedTicket = ticket;
 
-      next();
+      return next();
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 
-  showAll: async (req, res, next) => {
+  async showAll(req, res, next) {
     const queryOptions = {
       populate: [
         {
@@ -73,11 +73,11 @@ const ticketActions = {
       const tickets = await utils.PaginateRequest(req, queryOptions, Ticket);
       return res.success(tickets);
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 
-  showAllById: async (req, res, next) => {
+  async showAllById(req, res, next) {
     const queryOptions = {
       createdBy: req.params.id,
       populate: [
@@ -97,7 +97,7 @@ const ticketActions = {
       const tickets = await utils.PaginateRequest(req, queryOptions, Ticket);
       return res.success(tickets);
     } catch (err) {
-      next(err);
+      return next(err);
     }
   },
 
@@ -105,7 +105,7 @@ const ticketActions = {
 
   showMessages: (req, res) => res.success(req.scopedTicket.messages),
 
-  create: async (req, res, next) => {
+  async create(req, res, next) {
     const { title, messages } = req.body;
     const datedMessages = messages.map(message => ({
       ...message,
@@ -138,7 +138,7 @@ const ticketActions = {
     }
   },
 
-  createMessage: async (req, res, next) => {
+  async createMessage(req, res, next) {
     const { text, attachments } = req.body;
 
     req.scopedTicket.messages.push({
@@ -163,6 +163,21 @@ const ticketActions = {
         });
 
       return res.success(fullTicket.messages[fullTicket.messages.length - 1]);
+    } catch (err) {
+      return next(err);
+    }
+  },
+
+  async update(req, res, next) {
+    const { status } = req.body;
+    try {
+      const ticket = await Ticket.findByIdAndUpdate(
+        req.scopedTicket.id,
+        { status },
+        { new: true },
+      );
+
+      res.success(ticket);
     } catch (err) {
       next(err);
     }

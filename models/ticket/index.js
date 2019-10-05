@@ -6,6 +6,12 @@ const mongoosePaginate = require('mongoose-paginate');
 
 const ticketSchema = new Schema({
   title: String,
+  status: {
+    type: String,
+    trim: true,
+    enum: ['open', 'closed'],
+    default: 'open',
+  },
   createdBy: { type: ObjectId, ref: 'User' },
   messages: [
     {
