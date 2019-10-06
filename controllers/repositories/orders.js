@@ -109,14 +109,7 @@ const orderActions = {
         User.findById(req.user.id),
         Setting.findOne(),
       ]);
-      const price = merchant.delivery.method === 'self'
-        ? merchant.delivery.price
-        : settings.deliveryCharge;
-      if (req.planner) {
-        req.planner.orders.price = price;
-        req.planner.priceTotal += priceTotal;
-        req.planner.reference = `000${req.planner._id}${req.planner.orders.length}`;
-      } // save weekly planner details if exists;
+      const price = merchant.delivery.method === 'self' ? merchant.delivery.price : settings.deliveryCharge;
       const transaction = await paystack.transaction.initialize({
         reference: req.planner ? req.planner.reference : savedOrder.id,
         amount: req.planner ? req.planner.priceTotal * 100 : priceTotal * 100,
@@ -125,6 +118,7 @@ const orderActions = {
       if (transaction.status !== true) {
         throw new Error(transaction.message);
       }
+
       const fullOrder = await Order.findByIdAndUpdate(
         savedOrder.id,
         {
@@ -151,8 +145,13 @@ const orderActions = {
           model: User,
           select: '-password -selected',
         });
-      req.planner.payment.accessCode = transaction.data.access_code;
-      await req.planner.save();
+      if (req.planner) {
+        req.planner.orders.price = price;
+        req.planner.priceTotal += priceTotal;
+        req.planner.reference = `000${req.planner._id}${req.planner.orders.length}`;
+        req.planner.payment.accessCode = transaction.data.access_code;
+        await req.planner.save();
+      } // save weekly planner details if exists;
       SendNotification({
         message: `An order has been placed by ${customer.fullName}`,
         orderNumber: fullOrder._id,
@@ -164,7 +163,7 @@ const orderActions = {
         subject: 'New Order',
         content: `An order has with id ${fullOrder._id}, been placed by ${customer.fullName}`,
         template: 'email',
-        link: `${path}?id=${fullOrder._id}`,
+        link: `${path}?customerId=${fullOrder._id}`,
         button: 'View Request',
       };
       Email(details).send();
