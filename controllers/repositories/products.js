@@ -92,6 +92,21 @@ const productActions = {
         return next(err);
       }
     },
+
+    async delete(req, res, next) {
+      try {
+        const products = await Product.find({
+          category: req.scopedCategory.id,
+        });
+        if (products.length > 0) {
+          return res.badRequest('This category still contains products');
+        }
+        await req.scopedCategory.remove();
+        return res.success();
+      } catch (err) {
+        return next(err);
+      }
+    },
   },
 
   SubProduct: {
@@ -134,6 +149,16 @@ const productActions = {
         );
       } catch (err) {
         return next(err);
+      }
+    },
+
+    async delete(req, res, next) {
+      try {
+        req.scopedProduct.subProducts.id(req.params.subProductId).remove();
+        await req.scopedProduct.save();
+        res.success();
+      } catch (err) {
+        next(err);
       }
     },
   },
@@ -498,6 +523,15 @@ const productActions = {
     try {
       const products = await utils.PaginateRequest(req, queryOptions, Product);
       res.success(products);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async delete(req, res, next) {
+    try {
+      await req.scopedProduct.remove();
+      res.success();
     } catch (err) {
       next(err);
     }
