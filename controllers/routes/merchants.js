@@ -48,6 +48,8 @@ router.get('/:id/product-categories/:categoryId', Product.Category.showOne);
 
 router.put('/:id/product-categories/:categoryId', Product.Category.update);
 
+router.delete('/:id/product-categories/:categoryId', Product.Category.delete);
+
 router.post(
   '/:id/product-categories/:categoryId/products',
   Product.createInCategory,
@@ -72,11 +74,18 @@ router.get('/:id/products/:productId', Product.showOne);
 
 router.put('/:id/products/:productId', Product.update);
 
+router.delete('/:id/products/:productId', Product.delete);
+
 router.post('/:id/products/:productId/sub-products', Product.SubProduct.create);
 
 router.put(
   '/:id/products/:productId/sub-products/:subProductId',
   Product.SubProduct.update,
+);
+
+router.delete(
+  '/:id/products/:productId/sub-products/:subProductId',
+  Product.SubProduct.delete,
 );
 
 router.post('/:id/combo-products', Product.ComboProduct.create);
@@ -86,6 +95,8 @@ router.get('/:id/combo-products', Product.ComboProduct.showAll);
 router.use('/:id/combo-products/:productId', Product.ComboProduct.scopeRequest);
 
 router.get('/:id/combo-products/:productId', Product.showOne);
+
+router.delete('/:id/combo-products/:productId', Product.delete);
 
 router.put('/:id/combo-products/:productId', Product.ComboProduct.update);
 
