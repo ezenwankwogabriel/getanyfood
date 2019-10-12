@@ -87,7 +87,10 @@ const promotionActions = {
 
   update: async (req, res, next) => {
     try {
-      await req.scopedPromotion.update({ ...req.body });
+      await req.scopedPromotion.update(
+        { ...req.body },
+        { runValidators: true },
+      );
 
       const updatedPromotion = await Promotion.findById(req.scopedPromotion.id)
         .populate({
