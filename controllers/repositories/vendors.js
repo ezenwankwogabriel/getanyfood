@@ -15,7 +15,7 @@ module.exports = class AuditTrail {
         'businessAddress',
         'emailAddress',
         'phoneNumber',
-        'workingHours',
+        'businessDays',
         'profilePhoto',
         'profileThumbnail',
         'businessDescription',
@@ -45,7 +45,11 @@ module.exports = class AuditTrail {
       populate: [{ path: 'merchant', select: '-password -deleted' }],
     };
     if (name) query.name = new RegExp(name);
-    const categories = await utils.PaginateRequest(req, query, ProductCategoryModel);
+    const categories = await utils.PaginateRequest(
+      req,
+      query,
+      ProductCategoryModel,
+    );
     res.success(categories);
   }
 
@@ -79,7 +83,11 @@ module.exports = class AuditTrail {
 
   static async recommendNewVendor(req, res) {
     const {
-      emailAddress, businessAddress, businessName, phoneNumber, comment,
+      emailAddress,
+      businessAddress,
+      businessName,
+      phoneNumber,
+      comment,
     } = req.body;
     const { firstName, lastName } = req.user;
     req.body.template = 'email';
