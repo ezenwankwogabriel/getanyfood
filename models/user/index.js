@@ -62,10 +62,19 @@ const userSchema = new Schema({
     },
   },
   businessDescription: String,
-  workingHours: {
-    openTime: String,
-    closeTime: String,
-  },
+  businessDays: [
+    {
+      day: {
+        type: String,
+        enum: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
+        required: true,
+      },
+      workingHours: {
+        openTime: { type: String },
+        closeTime: { type: String },
+      },
+    },
+  ],
   location: {
     state: String,
     city: String,

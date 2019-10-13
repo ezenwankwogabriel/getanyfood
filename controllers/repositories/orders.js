@@ -109,7 +109,9 @@ const orderActions = {
         User.findById(req.user.id),
         Setting.findOne(),
       ]);
-      const price = merchant.delivery.method === 'self' ? merchant.delivery.price : settings.deliveryCharge;
+      const price = merchant.delivery.method === 'self'
+        ? merchant.delivery.price
+        : settings.deliveryCharge;
       const transaction = await paystack.transaction.initialize({
         reference: req.planner ? req.planner.reference : savedOrder.id,
         amount: req.planner ? req.planner.priceTotal * 100 : priceTotal * 100,
@@ -133,7 +135,7 @@ const orderActions = {
             accessCode: req.planner ? '' : transaction.data.access_code,
           },
         },
-        { new: true },
+        { runValidators: true, new: true },
       )
         .populate({
           path: 'customer',
@@ -283,7 +285,7 @@ const orderActions = {
       const order = await Order.findByIdAndUpdate(
         req.scopedOrder.id,
         { rating, comment },
-        { new: true },
+        { runValidators: true, new: true },
       );
       return res.success(order);
     } catch (err) {
@@ -332,7 +334,10 @@ const orderActions = {
 
       const result = await Promise.all(
         Object.keys(groupedOrders).map(async (customerId) => {
-          const customer = await User.findById(customerId, '-password -deleted');
+          const customer = await User.findById(
+            customerId,
+            '-password -deleted',
+          );
           return {
             customer,
             orderCount: groupedOrders[customerId].length,
@@ -503,10 +508,13 @@ const orderActions = {
   async update(req, res, next) {
     const { status, pickupTime } = req.body;
     try {
-      await req.scopedOrder.update({
-        status,
-        pickupTime,
-      });
+      await req.scopedOrder.update(
+        {
+          status,
+          pickupTime,
+        },
+        { runValidators: true },
+      );
       const merchant = await User.findById(req.params.id);
 
       const updatedOrder = await Order.findOne({

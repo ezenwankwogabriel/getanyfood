@@ -99,7 +99,7 @@ const userActions = {
           'password',
           'profilePhoto',
           'profileThumbnail',
-          'workingHours',
+          'businessDays',
         ].includes(key);
         const nameField = ['lastName'].includes(key);
         return validField && (nonEmptyField || nameField);
@@ -116,7 +116,7 @@ const userActions = {
           ...data,
           updated_time: new Date(),
         },
-        { new: true, select: '-password -deleted' },
+        { runValidators: true, new: true, select: '-password -deleted' },
       );
       return res.success(updatedUser);
     } catch (err) {
