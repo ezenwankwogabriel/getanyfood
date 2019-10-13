@@ -61,12 +61,18 @@ const userSchema = new Schema({
       return this.userType === 'merchant';
     },
   },
+  businessType: {
+    type: String,
+    enum: ['Restaurant', 'Supermarket', 'Mini Mart', 'Frozen Foods', 'Drinks'],
+  },
   businessDescription: String,
   businessDays: [
     {
       type: String,
       enum: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
-      required: true,
+      required() {
+        return this.userType === 'merchant';
+      },
     },
   ],
   workingHours: {
