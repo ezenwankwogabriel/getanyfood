@@ -16,6 +16,7 @@ module.exports = class AuditTrail {
         'emailAddress',
         'phoneNumber',
         'businessDays',
+        'workingHours',
         'profilePhoto',
         'profileThumbnail',
         'businessDescription',

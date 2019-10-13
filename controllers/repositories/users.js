@@ -100,6 +100,7 @@ const userActions = {
           'profilePhoto',
           'profileThumbnail',
           'businessDays',
+          'workingHours',
         ].includes(key);
         const nameField = ['lastName'].includes(key);
         return validField && (nonEmptyField || nameField);
