@@ -100,7 +100,7 @@ const userSchema = new Schema({
       default: 'getanyfood',
     },
     price: {
-      type: String,
+      type: Number,
       required() {
         return this.delivery.method === 'self';
       },
