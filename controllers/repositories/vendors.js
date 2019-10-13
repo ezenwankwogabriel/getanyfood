@@ -13,6 +13,7 @@ module.exports = class AuditTrail {
       select: [
         'businessName',
         'businessAddress',
+        'businessType',
         'emailAddress',
         'phoneNumber',
         'businessDays',
