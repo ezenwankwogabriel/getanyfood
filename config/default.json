@@ -2,6 +2,7 @@
     "port": "3000",
     "host": "localhost",
     "web_host": "localhost:8000",
+    "api": "localhost:3000",
     "database": "getanyfood",
     "support": "support@getanyfood.com"
 }

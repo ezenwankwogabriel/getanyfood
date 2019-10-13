@@ -14,7 +14,7 @@ module.exports = {
   dbName: config.get('database'),
   webHost: config.get('web_host'),
   supportEmail: config.get('support'),
-
+  api: config.get('api'),
   Email,
   EncryptPassword,
   PaginateRequest,
