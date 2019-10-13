@@ -9,6 +9,7 @@ class Email {
     this.details = details;
     this.email = process.env.getanyEmail;
     this.appName = process.env.appName;
+    this.ip = config.get('api');
   }
 
   async getContent() {
@@ -16,9 +17,8 @@ class Email {
       email: to, template, ...rest
     } = this.details;
     const date = new Date().toDateString();
-    const ip = config.get('web_host');
     const emailTemplate = await ejs.renderFile(`${RootDir}/views/${template}.ejs`, {
-      to, ...rest, date, ip,
+      to, ...rest, date, ip: this.ip,
     });
     return emailTemplate;
   }
