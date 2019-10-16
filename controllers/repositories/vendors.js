@@ -24,8 +24,8 @@ module.exports = class AuditTrail {
         'delivery',
       ],
     };
-    if (req.query.name) query.businessName = new RegExp(req.query.name);
-    if (req.query.category) query.businessCategory = new RegExp(req.query.category);
+    if (req.query.name) query.businessName = new RegExp(req.query.name, 'i');
+    if (req.query.category) query.businessCategory = new RegExp(req.query.category, 'i');
 
     const vendors = await utils.PaginateRequest(req, query, UserModel);
     const ratedVendors = await Promise.all(
@@ -45,7 +45,7 @@ module.exports = class AuditTrail {
       merchant,
       populate: [{ path: 'merchant', select: '-password -deleted' }],
     };
-    if (name) query.name = new RegExp(name);
+    if (name) query.name = new RegExp(name, 'i');
     const categories = await utils.PaginateRequest(
       req,
       query,
@@ -73,7 +73,7 @@ module.exports = class AuditTrail {
       sort: { rating: 1 },
     };
     if (category) query.category = category;
-    if (name) query.businessName = new RegExp(name);
+    if (name) query.businessName = new RegExp(name, 'i');
     if (from && to) query.price = { $gt: from, $lt: to };
     if (type === 'freeDelivery') query.deliveryType = 'free';
     if (type === 'maxDiscount') query.sort = { discount: 1 };
