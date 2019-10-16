@@ -61,9 +61,16 @@ module.exports = class CreateSubUser {
     adminId = adminId || _id;
     const query = { adminId };
 
-    if (req.query.firstName) query.firstName = req.query.firstName;
-    if (req.query.lastName) query.lastName = req.query.lastName;
-    if (req.query.emailAddress) query.emailAddress = req.query.emailAddress;
+    if (req.query.name) {
+      query.$or = [
+        { firstName: new RegExp(req.query.name) },
+        { lastName: new RegExp(req.query.name) },
+      ];
+    }
+    if (req.query.company) query.businessName = new RegExp(req.query.company);
+    if (req.query.status) query.status = req.query.status === 'active' ? 1 : 0;
+    if (req.query.emailAddress) query.emailAddress = new RegExp(req.query.emailAddress);
+    if (req.query.businessName) query.businessName = new RegExp(req.query.businessName);
 
     const users = await utils.PaginateRequest(req, query, UserModel);
     res.success(users);
@@ -71,8 +78,8 @@ module.exports = class CreateSubUser {
 
   static async allUsers(req, res) {
     const { type } = req.params;
-    if (type !== 'merchant' && type !== 'customer') return res.badRequest('invalid user type');
-    const query = { userType: type };
+    if (type !== 'merchant' && type !== 'admin') return res.badRequest('invalid user type');
+    const query = { userType: type === 'admin' ? 'sub_admin' : type };
     if (req.query.name) {
       query.$or = [
         { firstName: new RegExp(req.query.name) },
