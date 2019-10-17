@@ -78,8 +78,8 @@ module.exports = class CreateSubUser {
 
   static async allUsers(req, res) {
     const { type } = req.params;
-    if (type !== 'merchant' && type !== 'admin') return res.badRequest('invalid user type');
-    const query = { userType: type === 'admin' ? 'sub_admin' : type };
+    if (type !== 'merchant' && type !== 'customer') return res.badRequest('invalid user type');
+    const query = { userType: type };
     if (req.query.name) {
       query.$or = [
         { firstName: new RegExp(req.query.name) },
