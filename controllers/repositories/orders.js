@@ -4,6 +4,7 @@ const paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
 const { groupBy, sortBy } = require('lodash');
 const { DateTime } = require('luxon');
 const utils = require('../../utils');
+const collate = require('../../utils/collate');
 const User = require('../../models/user');
 const Product = require('../../models/product');
 const Order = require('../../models/order');
@@ -22,6 +23,10 @@ function search(model, query, options = {}) {
       return resolve(results);
     });
   });
+}
+
+function sumTotal(total, order) {
+  return total + (order.priceTotal - order.delivery.price);
 }
 
 const orderActions = {
@@ -613,6 +618,132 @@ const orderActions = {
         }
       }
       res.success();
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async merchantOrderStats(req, res, next) {
+    const { id } = req.params;
+    const date = new DateTime('now');
+    const dayStart = date.startOf('day');
+    const dayEnd = date.endOf('day');
+    const monthStart = date.startOf('month');
+    const monthEnd = date.endOf('month');
+    const yearStart = date.startOf('year');
+    const yearEnd = date.endOf('year');
+
+    try {
+      const [
+        pending,
+        ongoing,
+        completed,
+        dayOrders,
+        monthOrders,
+        yearOrders,
+      ] = await Promise.all([
+        Order.countDocuments({
+          merchant: id,
+          'payment.status': 'success',
+          status: 'pending',
+        }),
+        Order.countDocuments({
+          merchant: id,
+          'payment.status': 'success',
+          status: 'accepted',
+        }),
+        Order.countDocuments({
+          merchant: id,
+          'payment.status': 'success',
+          status: 'completed',
+        }),
+        Order.find({
+          merchant: id,
+          'payment.status': 'success',
+          createdAt: { $gte: dayStart, $lte: dayEnd },
+        }),
+        Order.find({
+          merchant: id,
+          'payment.status': 'success',
+          createdAt: { $gte: monthStart, $lte: monthEnd },
+        }),
+        Order.find({
+          merchant: id,
+          'payment.status': 'success',
+          createdAt: { $gte: yearStart, $lte: yearEnd },
+        }),
+      ]);
+
+      const daySales = dayOrders.reduce(sumTotal, 0);
+
+      const monthSales = monthOrders.reduce(sumTotal, 0);
+
+      const yearSales = yearOrders.reduce(sumTotal, 0);
+
+      res.success({
+        orders: {
+          new: pending,
+          ongoing,
+          completed,
+          day: dayOrders.length,
+          month: monthOrders.length,
+          year: yearOrders.length,
+        },
+        sales: {
+          day: daySales,
+          month: monthSales,
+          year: yearSales,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async merchantSalesStats(req, res, next) {
+    const { id } = req.params;
+
+    try {
+      const orders = await Order.find({
+        merchant: id,
+        'payment.status': 'success',
+      });
+
+      const firstOrder = await Order.findOne({
+        merchant: id,
+        'payment.status': 'success',
+      }).sort({ $natural: 1 });
+
+      const { month: startMonth, year: startYear } = DateTime.fromJSDate(
+        firstOrder.createdAt,
+      );
+
+      const { month: currentMonth, year: currentYear } = new DateTime('now');
+
+      const refinedOrders = orders.map((order) => {
+        const { month, year } = DateTime.fromJSDate(order.createdAt);
+        return {
+          amount: order.priceTotal - order.delivery.price,
+          month,
+          year,
+        };
+      });
+
+      for (let year = startYear; year <= currentYear; year += 1) {
+        const initMonth = year === startYear ? startMonth : 1;
+        const termMonth = year === startYear ? currentMonth : 12;
+        for (let month = initMonth; month <= termMonth; month += 1) {
+          refinedOrders.push({
+            amount: 0,
+            month,
+            year,
+          });
+        }
+      }
+
+      const stats = collate(refinedOrders);
+
+      res.success(stats);
     } catch (err) {
       next(err);
     }

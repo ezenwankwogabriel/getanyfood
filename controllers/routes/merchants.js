@@ -23,6 +23,10 @@ router.get('/:id', User.showOne);
 
 router.put('/:id', User.update);
 
+router.get('/:id/stats/orders', Order.merchantOrderStats);
+
+router.get('/:id/stats/sales', Order.merchantSalesStats);
+
 router.get('/:id/orders/comments', Order.showComments);
 
 router.get('/:id/customers/ranking', Order.showCustomerRanking);
@@ -38,6 +42,13 @@ router.patch('/:id/orders/:orderId', Order.update);
 router.post('/:id/product-categories', Product.Category.create);
 
 router.get('/:id/product-categories', Product.Category.showAll);
+
+router.get('/:id/product-categories/stats', Product.showCategoryStats);
+
+router.get(
+  '/:id/product-categories/year-stats',
+  Product.showCategoryStatsByYear,
+);
 
 router.use(
   '/:id/product-categories/:categoryId',
@@ -63,6 +74,8 @@ router.get(
 router.get('/:id/products/stock', Product.showStock);
 
 router.get('/:id/products/stats', Product.showStats);
+
+router.get('/:id/products/year-stats', Product.showProductStatsByYear);
 
 router.get('/:id/products', Product.showAll);
 

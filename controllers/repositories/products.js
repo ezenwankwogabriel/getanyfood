@@ -1,5 +1,6 @@
 /* eslint-disable consistent-return */
 const { DateTime } = require('luxon');
+const { groupBy, range } = require('lodash');
 const User = require('../../models/user');
 const ProductCategory = require('../../models/product/category');
 const Product = require('../../models/product');
@@ -385,6 +386,7 @@ const productActions = {
       const stats = await Promise.all(
         products.map(async (product) => {
           const orders = await Order.find({
+            'payment.status': 'success',
             'items.product': { $in: [product.id] },
           });
 
@@ -406,6 +408,384 @@ const productActions = {
           };
         }),
       );
+
+      res.success(stats);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async showCategoryStats(req, res, next) {
+    const { productType } = req.query;
+
+    try {
+      const categories = await ProductCategory.find(
+        {
+          merchant: req.params.id,
+        },
+        '_id name createdAt',
+      );
+
+      const collection = [];
+
+      await Promise.all(
+        categories.map(async (category) => {
+          const queryOptions = {
+            merchant: req.params.id,
+            category: category.id,
+          };
+
+          if (productType) {
+            const isValidType = ['single', 'combo'].includes(productType);
+            if (!isValidType) {
+              return res.badRequest('Invalid product type');
+            }
+            queryOptions.type = productType;
+          }
+          const products = await Product.find(
+            queryOptions,
+            '_id name type createdAt',
+          );
+
+          const categoryCreationYear = DateTime.fromJSDate(category.createdAt)
+            .year;
+          const currentYear = new DateTime('now').year;
+          const categoryYears = currentYear > categoryCreationYear
+            ? range(categoryCreationYear, currentYear)
+            : [currentYear];
+
+          categoryYears.map(categoryYear => collection.push({
+            // eslint-disable-next-line no-underscore-dangle
+            ...category._doc,
+            year: categoryYear,
+            unitsOrdered: 0,
+          }));
+
+          await Promise.all(
+            products.map(async (product) => {
+              const orders = await Order.find({
+                'payment.status': 'success',
+                'items.product': { $in: [product.id] },
+              });
+
+              const refinedOrders = orders.map(order => ({
+                items: order.items,
+                year: DateTime.fromJSDate(order.createdAt).year,
+              }));
+
+              const refinedOrdersByYear = groupBy(refinedOrders, 'year');
+
+              const unitsOrderedByYear = [];
+              Object.keys(refinedOrdersByYear).map((year) => {
+                const yearOrders = refinedOrdersByYear[year];
+                const unitsOrdered = yearOrders.reduce(
+                  (total, { items }) => total
+                    + items
+                      .filter(
+                        item => String(item.product) === String(product.id),
+                      )
+                      .reduce(
+                        (unitsInOrder, { count = 1 }) => unitsInOrder + count,
+                        0,
+                      ),
+                  0,
+                );
+
+                return unitsOrderedByYear.push({ year, unitsOrdered });
+              });
+
+              const productCreationYear = DateTime.fromJSDate(product.createdAt)
+                .year;
+              const productYears = currentYear > productCreationYear
+                ? range(productCreationYear, currentYear)
+                : [currentYear];
+
+              productYears
+                .filter(
+                  productYear => !unitsOrderedByYear
+                    .map(({ year }) => year)
+                    .includes(productYear),
+                )
+                .map(productYear => collection.push({
+                  // eslint-disable-next-line no-underscore-dangle
+                  ...category._doc,
+                  year: productYear,
+                  unitsOrdered: 0,
+                }));
+
+              return unitsOrderedByYear.forEach((data) => {
+                collection.push({
+                  // eslint-disable-next-line no-underscore-dangle
+                  ...category._doc,
+                  ...data,
+                });
+              });
+            }),
+          );
+        }),
+      );
+
+      const cols = collection.map(({ _id, name, unitsOrdered }) => ({
+        _id,
+        name,
+        unitsOrdered,
+        sort: _id,
+      }));
+
+      const sortedCols = groupBy(cols, 'sort');
+
+      const stats = [];
+
+      Object.keys(sortedCols).forEach((key) => {
+        stats.push(
+          sortedCols[key].reduce(
+            (
+              { unitsOrdered: totalUnitsOrdered },
+              {
+                _id, name, year, unitsOrdered,
+              },
+            ) => ({
+              _id,
+              name,
+              year,
+              unitsOrdered: totalUnitsOrdered + unitsOrdered,
+            }),
+            { unitsOrdered: 0 },
+          ),
+        );
+      });
+
+      res.success(stats);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async showCategoryStatsByYear(req, res, next) {
+    const queryOptions = {
+      merchant: req.params.id,
+    };
+
+    try {
+      const categories = await ProductCategory.find(
+        queryOptions,
+        '_id name createdAt',
+      );
+
+      const collection = [];
+
+      await Promise.all(
+        categories.map(async (category) => {
+          const products = await Product.find(
+            {
+              merchant: req.params.id,
+              category: category.id,
+            },
+            '_id name type createdAt',
+          );
+
+          const categoryCreationYear = DateTime.fromJSDate(category.createdAt)
+            .year;
+          const currentYear = new DateTime('now').year;
+          const categoryYears = currentYear > categoryCreationYear
+            ? range(categoryCreationYear, currentYear)
+            : [currentYear];
+
+          categoryYears.map(categoryYear => collection.push({
+            // eslint-disable-next-line no-underscore-dangle
+            ...category._doc,
+            year: categoryYear,
+            unitsOrdered: 0,
+          }));
+
+          await Promise.all(
+            products.map(async (product) => {
+              const orders = await Order.find({
+                'payment.status': 'success',
+                'items.product': { $in: [product.id] },
+              });
+
+              const refinedOrders = orders.map(order => ({
+                items: order.items,
+                year: DateTime.fromJSDate(order.createdAt).year,
+              }));
+
+              const refinedOrdersByYear = groupBy(refinedOrders, 'year');
+
+              const unitsOrderedByYear = [];
+              Object.keys(refinedOrdersByYear).map((year) => {
+                const yearOrders = refinedOrdersByYear[year];
+                const unitsOrdered = yearOrders.reduce(
+                  (total, { items }) => total
+                    + items
+                      .filter(
+                        item => String(item.product) === String(product.id),
+                      )
+                      .reduce(
+                        (unitsInOrder, { count = 1 }) => unitsInOrder + count,
+                        0,
+                      ),
+                  0,
+                );
+
+                return unitsOrderedByYear.push({ year, unitsOrdered });
+              });
+
+              const productCreationYear = DateTime.fromJSDate(product.createdAt)
+                .year;
+              const productYears = currentYear > productCreationYear
+                ? range(productCreationYear, currentYear)
+                : [currentYear];
+
+              productYears
+                .filter(
+                  productYear => !unitsOrderedByYear
+                    .map(({ year }) => year)
+                    .includes(productYear),
+                )
+                .map(productYear => collection.push({
+                  // eslint-disable-next-line no-underscore-dangle
+                  ...category._doc,
+                  year: productYear,
+                  unitsOrdered: 0,
+                }));
+
+              return unitsOrderedByYear.forEach((data) => {
+                collection.push({
+                  // eslint-disable-next-line no-underscore-dangle
+                  ...category._doc,
+                  ...data,
+                });
+              });
+            }),
+          );
+        }),
+      );
+
+      const cols = collection.map(({
+        _id, name, year, unitsOrdered,
+      }) => ({
+        _id,
+        name,
+        year,
+        unitsOrdered,
+        sort: _id + year,
+      }));
+
+      const sortedCols = groupBy(cols, 'sort');
+
+      const midStats = [];
+
+      Object.keys(sortedCols).forEach((key) => {
+        midStats.push(
+          sortedCols[key].reduce(
+            (
+              { unitsOrdered: totalUnitsOrdered },
+              {
+                _id, name, year, unitsOrdered,
+              },
+            ) => ({
+              _id,
+              name,
+              year,
+              unitsOrdered: totalUnitsOrdered + unitsOrdered,
+            }),
+            { unitsOrdered: 0 },
+          ),
+        );
+      });
+
+      const stats = groupBy(midStats, 'year');
+
+      res.success(stats);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async showProductStatsByYear(req, res, next) {
+    const { productType } = req.query;
+    const queryOptions = {
+      merchant: req.params.id,
+    };
+
+    if (productType) {
+      const isValidType = ['single', 'combo'].includes(productType);
+      if (!isValidType) {
+        return res.badRequest('Invalid product type');
+      }
+      queryOptions.type = productType;
+    }
+
+    try {
+      const products = await Product.find(
+        queryOptions,
+        '_id name type createdAt',
+      );
+
+      const collection = [];
+      await Promise.all(
+        products.map(async (product) => {
+          const orders = await Order.find({
+            'payment.status': 'success',
+            'items.product': { $in: [product.id] },
+          });
+
+          const refinedOrders = orders.map(order => ({
+            items: order.items,
+            year: DateTime.fromJSDate(order.createdAt).year,
+          }));
+
+          const refinedOrdersByYear = groupBy(refinedOrders, 'year');
+
+          const unitsOrderedByYear = [];
+          Object.keys(refinedOrdersByYear).map((year) => {
+            const yearOrders = refinedOrdersByYear[year];
+            const unitsOrdered = yearOrders.reduce(
+              (total, { items }) => total
+                + items
+                  .filter(item => String(item.product) === String(product.id))
+                  .reduce(
+                    (unitsInOrder, { count = 1 }) => unitsInOrder + count,
+                    0,
+                  ),
+              0,
+            );
+
+            return unitsOrderedByYear.push({ year, unitsOrdered });
+          });
+
+          const productCreationYear = DateTime.fromJSDate(product.createdAt)
+            .year;
+          const currentYear = new DateTime('now').year;
+          const productYears = currentYear > productCreationYear
+            ? range(productCreationYear, currentYear)
+            : [currentYear];
+
+          productYears
+            .filter(
+              productYear => !unitsOrderedByYear
+                .map(({ year }) => year)
+                .includes(productYear),
+            )
+            .map(productYear => collection.push({
+              // eslint-disable-next-line no-underscore-dangle
+              ...product._doc,
+              year: productYear,
+              unitsOrdered: 0,
+            }));
+
+          return unitsOrderedByYear.forEach((data) => {
+            collection.push({
+              // eslint-disable-next-line no-underscore-dangle
+              ...product._doc,
+              ...data,
+            });
+          });
+        }),
+      );
+
+      const stats = groupBy(collection, 'year');
 
       res.success(stats);
     } catch (err) {
