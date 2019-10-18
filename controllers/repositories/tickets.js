@@ -174,7 +174,7 @@ const ticketActions = {
       const ticket = await Ticket.findByIdAndUpdate(
         req.scopedTicket.id,
         { status },
-        { runValidators: true, new: true },
+        { new: true },
       );
 
       res.success(ticket);

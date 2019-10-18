@@ -135,7 +135,7 @@ const orderActions = {
             accessCode: req.planner ? '' : transaction.data.access_code,
           },
         },
-        { runValidators: true, new: true },
+        { new: true },
       )
         .populate({
           path: 'customer',
@@ -285,7 +285,7 @@ const orderActions = {
       const order = await Order.findByIdAndUpdate(
         req.scopedOrder.id,
         { rating, comment },
-        { runValidators: true, new: true },
+        { new: true },
       );
       return res.success(order);
     } catch (err) {
@@ -508,13 +508,10 @@ const orderActions = {
   async update(req, res, next) {
     const { status, pickupTime } = req.body;
     try {
-      await req.scopedOrder.update(
-        {
-          status,
-          pickupTime,
-        },
-        { runValidators: true },
-      );
+      await req.scopedOrder.update({
+        status,
+        pickupTime,
+      });
       const merchant = await User.findById(req.params.id);
 
       const updatedOrder = await Order.findOne({
