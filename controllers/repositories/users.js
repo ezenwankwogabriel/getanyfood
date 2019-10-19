@@ -138,6 +138,23 @@ const userActions = {
       next(err);
     }
   },
+
+  async signupStats(req, res, next) {
+    try {
+      const [merchants, customers] = await Promise.all([
+        User.countDocuments({
+          userType: 'merchant',
+        }),
+        User.countDocuments({
+          userType: 'customer',
+        }),
+      ]);
+
+      res.success({ merchants, customers });
+    } catch (err) {
+      next(err);
+    }
+  },
 };
 
 module.exports = userActions;

@@ -25,6 +25,8 @@ router.get('/delivery-requests', Order.showDeliveryRequests);
 
 router.get('/delivery-requests.csv', Order.exportDeliveryRequests);
 
+router.get('/stats/signups', User.signupStats);
+
 router.use('/:id', User.scopeRequest('super_admin'));
 
 router.get('/:id', User.showOne);
