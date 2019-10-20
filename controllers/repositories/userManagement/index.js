@@ -32,6 +32,29 @@ module.exports = class CreateSubUser {
     return res.success(saved);
   }
 
+  static async updateProfile(req, res) {
+    // accessed by merchant or super admin with priviledge;
+    const { type } = req.query;
+    const {
+      permission, userId, adminPassword, newPassword,
+    } = req.body;
+    const { _id: adminId } = req.user;
+    const update = async (updateQuery) => {
+      await UserModel.findByIdAndUpdate(userId, { $set: updateQuery });
+      return null;
+    };
+    if (!['updatePassword', 'updatePermission'].includes(type)) return res.badRequest('Invalid update type provided');
+    if (type === 'updatePassword') {
+      const adminPassVerified = await UserModel.verifyAdminPassword(adminId, adminPassword);
+      if (!adminPassVerified) return res.badRequest('Admin password incorrect');
+      await update({ password: utils.EncryptPassword(newPassword) });
+    }
+    if (type === 'updatePermission') {
+      await update({ permission });
+    }
+    return res.success('Updated user profile');
+  }
+
   static async actionOnUser(req, res) {
     const { id, action } = req.params;
 

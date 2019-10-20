@@ -217,11 +217,11 @@ userSchema.statics.findByEmail = function findByEmail(emailAddress) {
 };
 
 userSchema.statics.verifyAdminPassword = async function verifyAdminPassword(
-  userId,
+  adminId,
   adminPassword,
 ) {
   try {
-    const adminUser = await this.findOne({ _id: userId });
+    const adminUser = await this.findOne({ _id: adminId, userType: { $in: ['super_admin', 'merchant'] } });
     const user = bcrypt.compareSync(adminPassword, adminUser.password);
     return user;
   } catch (ex) {

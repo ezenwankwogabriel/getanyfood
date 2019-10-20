@@ -8,6 +8,7 @@ const userManagement = require('../../middleware/UserManagement/userManagementPe
 const validateIsAdminUser = require('../../middleware/UserManagement/isAdminUser');
 
 Router.post('/register', UserController.createUser);
+Router.put('/update', UserController.updateProfile);
 Router.put('/actionOnUser/:id/:action', userManagement, UserController.actionOnUser);
 Router.get('/getByToken', UserController.userByToken);
 Router.get('/getById/:id', UserController.userById);
