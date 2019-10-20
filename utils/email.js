@@ -18,7 +18,7 @@ class Email {
     } = this.details;
     const date = new Date().toDateString();
     const emailTemplate = await ejs.renderFile(`${RootDir}/views/${template}.ejs`, {
-      to, ...rest, date, ip: this.ip, link: false,
+      date, ip: this.ip, link: false, to, ...rest,
     });
     return emailTemplate;
   }
