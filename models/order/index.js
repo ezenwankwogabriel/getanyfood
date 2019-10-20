@@ -60,7 +60,6 @@ const orderSchema = new Schema(
       location: {
         state: String,
         city: String,
-        area: String,
         address: String,
         lat: Number,
         lng: Number,

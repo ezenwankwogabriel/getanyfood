@@ -82,7 +82,6 @@ const userSchema = new Schema({
   location: {
     state: String,
     city: String,
-    area: String,
     address: String,
     lat: Number,
     lng: Number,
@@ -91,7 +90,6 @@ const userSchema = new Schema({
     location: {
       state: String,
       city: String,
-      area: String,
       address: String,
       lat: Number,
       lng: Number,
