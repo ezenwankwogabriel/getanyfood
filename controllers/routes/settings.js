@@ -4,12 +4,18 @@ const Settings = require('../repositories/settings');
 
 const router = new Router();
 
-router.use(passport.authenticate('admin', { session: false }));
-
 router.use(Settings.scopeRequest);
 
-router.get('/', Settings.show);
+router.get(
+  '/',
+  passport.authenticate(['admin', 'merchant'], { session: false }),
+  Settings.show,
+);
 
-router.patch('/', Settings.update);
+router.patch(
+  '/',
+  passport.authenticate('admin', { session: false }),
+  Settings.update,
+);
 
 module.exports = router;

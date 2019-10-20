@@ -8,7 +8,10 @@ async function getPriceTotal(order) {
     Setting.findOne(),
   ]);
   if (!settings) throw new Error('Getanyfood price not set');
-  let { deliveryCharge } = settings;
+  let { deliveryCharge } = settings.stateSettings(
+    order.delivery.location.state,
+  );
+
   if (merchant.delivery.method === 'self') deliveryCharge = merchant.delivery.price;
 
   const prices = await Promise.all(
