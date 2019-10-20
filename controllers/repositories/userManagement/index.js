@@ -34,25 +34,24 @@ module.exports = class CreateSubUser {
 
   static async updateProfile(req, res) {
     // accessed by merchant or super admin with priviledge;
-    const { type } = req.query;
     const {
-      permission, userId, adminPassword, newPassword,
+      adminPassword, newPassword, _id: userId,
     } = req.body;
     const { _id: adminId } = req.user;
-    const update = async (updateQuery) => {
-      await UserModel.findByIdAndUpdate(userId, { $set: updateQuery });
-      return null;
-    };
-    if (!['updatePassword', 'updatePermission'].includes(type)) return res.badRequest('Invalid update type provided');
-    if (type === 'updatePassword') {
-      const adminPassVerified = await UserModel.verifyAdminPassword(adminId, adminPassword);
-      if (!adminPassVerified) return res.badRequest('Admin password incorrect');
-      await update({ password: utils.EncryptPassword(newPassword) });
+
+    if (!userId) return res.badRequest('User id not provided');
+
+    const adminPassVerified = await UserModel.verifyAdminPassword(adminId, adminPassword);
+    if (!adminPassVerified) return res.badRequest('Admin password incorrect');
+
+    const userUpdate = { ...req.body };
+    delete userUpdate.adminPassword;
+    delete userUpdate.newPassword;
+    if (newPassword) {
+      userUpdate.password = utils.EncryptPassword(newPassword);
     }
-    if (type === 'updatePermission') {
-      await update({ permission });
-    }
-    return res.success('Updated user profile');
+    await UserModel.findByIdAndUpdate(userId, { $set: { ...userUpdate } });
+    return res.success('User profile updated');
   }
 
   static async actionOnUser(req, res) {
@@ -105,14 +104,14 @@ module.exports = class CreateSubUser {
     const query = { userType: type };
     if (req.query.name) {
       query.$or = [
-        { firstName: new RegExp(req.query.name) },
-        { lastName: new RegExp(req.query.name) },
+        { firstName: new RegExp(req.query.name, 'i') },
+        { lastName: new RegExp(req.query.name, 'i') },
       ];
     }
-    if (req.query.company) query.businessName = new RegExp(req.query.company);
+    if (req.query.company) query.businessName = new RegExp(req.query.company, 'i');
     if (req.query.status) query.status = req.query.status === 'active' ? 1 : 0;
-    if (req.query.emailAddress) query.emailAddress = new RegExp(req.query.emailAddress);
-    if (req.query.businessName) query.businessName = new RegExp(req.query.businessName);
+    if (req.query.emailAddress) query.emailAddress = new RegExp(req.query.emailAddress, 'i');
+    if (req.query.businessName) query.businessName = new RegExp(req.query.businessName, 'i');
     if (req.query.adminId) {
       query.adminId = req.query.adminId;
       query.userType = 'sub_merchant';
