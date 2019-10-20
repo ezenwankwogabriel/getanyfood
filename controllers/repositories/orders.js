@@ -130,10 +130,10 @@ const orderActions = {
       if (!locationMatch) {
         throw new Error('Location mismatch: this order cannot be delivered.');
       }
-
+      const stateSettings = settings.stateSettings(delivery.location.state);
       const price = merchant.delivery.method === 'self'
         ? merchant.delivery.price
-        : settings.stateSettings(delivery.location.state).deliveryCharge;
+        : stateSettings.deliveryCharge;
       const transaction = await paystack.transaction.initialize({
         reference: req.planner ? req.planner.reference : savedOrder.id,
         amount: req.planner ? req.planner.priceTotal * 100 : priceTotal * 100,
@@ -151,6 +151,7 @@ const orderActions = {
             ...delivery,
             price,
           },
+          servicePercentage: stateSettings.servicePercentage,
           payment: {
             accessCode: req.planner ? '' : transaction.data.access_code,
           },
@@ -378,7 +379,6 @@ const orderActions = {
       const orders = await Order.find({
         'payment.status': 'success',
       });
-      const settings = await Setting.findOne();
 
       const ordersByMerchant = groupBy(orders, 'merchant');
 
@@ -391,14 +391,9 @@ const orderActions = {
             ({ delivery }) => delivery.method !== 'self',
           ).length;
           const merchantOrders = ordersByMerchant[merchant].map((order) => {
-            const stateSettings = settings.stateSettings(
-              order.delivery.location.state,
-            );
-            const deliveryCharge = order.delivery.method === 'self'
-              ? 0
-              : stateSettings.deliveryCharge;
+            const deliveryCharge = order.delivery.method === 'self' ? 0 : order.delivery.price;
             const itemValue = order.priceTotal - deliveryCharge;
-            const serviceCharge = (itemValue * stateSettings.servicePercentage) / 100;
+            const serviceCharge = (itemValue * order.servicePercentage) / 100;
             const { month, year } = DateTime.fromJSDate(order.createdAt);
 
             return {

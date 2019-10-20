@@ -67,6 +67,10 @@ const orderSchema = new Schema(
       },
       instructions: String,
     },
+    servicePercentage: {
+      type: Number,
+      min: 0,
+    },
     rating: { type: Number, min: 1, max: 5 },
     comment: String,
   },
