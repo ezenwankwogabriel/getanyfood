@@ -61,9 +61,16 @@ module.exports = class CreateSubUser {
     adminId = adminId || _id;
     const query = { adminId };
 
-    if (req.query.firstName) query.firstName = req.query.firstName;
-    if (req.query.lastName) query.lastName = req.query.lastName;
-    if (req.query.emailAddress) query.emailAddress = req.query.emailAddress;
+    if (req.query.name) {
+      query.$or = [
+        { firstName: new RegExp(req.query.name, 'i') },
+        { lastName: new RegExp(req.query.name, 'i') },
+      ];
+    }
+    if (req.query.company) query.businessName = new RegExp(req.query.company, 'i');
+    if (req.query.status) query.status = req.query.status === 'active' ? 1 : 0;
+    if (req.query.emailAddress) query.emailAddress = new RegExp(req.query.emailAddress, 'i');
+    if (req.query.businessName) query.businessName = new RegExp(req.query.businessName, 'i');
 
     const users = await utils.PaginateRequest(req, query, UserModel);
     res.success(users);

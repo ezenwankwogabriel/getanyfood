@@ -1,4 +1,4 @@
 {
-    "host": "https://api.getanyfood.com",
-    "web_host": "https://getanyfood.com"
+    "api": "http://api.getanyfood.com",
+    "web_host": "http://getanyfood.com"
 }

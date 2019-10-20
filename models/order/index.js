@@ -58,6 +58,7 @@ const orderSchema = new Schema(
       method: String,
       price: String,
       location: {
+        state: String,
         city: String,
         area: String,
         address: String,

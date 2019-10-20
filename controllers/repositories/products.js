@@ -74,13 +74,10 @@ const productActions = {
 
     async update(req, res, next) {
       try {
-        await req.scopedCategory.update(
-          {
-            ...req.body,
-            updatedAt: new Date(),
-          },
-          { runValidators: true },
-        );
+        await req.scopedCategory.update({
+          ...req.body,
+          updatedAt: new Date(),
+        });
 
         const newCategory = await ProductCategory.findOne({
           merchant: req.params.id,
@@ -257,13 +254,10 @@ const productActions = {
 
     async update(req, res, next) {
       try {
-        await req.scopedProduct.update(
-          {
-            ...req.body,
-            updatedAt: new Date(),
-          },
-          { runValidators: true },
-        );
+        await req.scopedProduct.update({
+          ...req.body,
+          updatedAt: new Date(),
+        });
 
         const product = await Product.findById(req.params.productId).populate({
           path: 'merchant',
@@ -350,13 +344,10 @@ const productActions = {
 
   async update(req, res, next) {
     try {
-      await req.scopedProduct.update(
-        {
-          ...req.body,
-          updatedAt: new Date(),
-        },
-        { runValidators: true },
-      );
+      await req.scopedProduct.update({
+        ...req.body,
+        updatedAt: new Date(),
+      });
 
       const product = await Product.findById(req.params.productId)
         .populate({

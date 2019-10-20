@@ -114,9 +114,26 @@ const orderActions = {
         User.findById(req.user.id),
         Setting.findOne(),
       ]);
+
+      const delivery = {
+        ...merchant.delivery,
+        ...customer.delivery,
+        ...req.body.delivery,
+      };
+
+      const sameState = merchant.location.state.toLowerCase()
+        === delivery.location.state.toLowerCase();
+      const sameCity = merchant.location.city.toLowerCase()
+        === delivery.location.city.toLowerCase();
+      const locationMatch = sameState && sameCity;
+
+      if (!locationMatch) {
+        throw new Error('Location mismatch: this order cannot be delivered.');
+      }
+
       const price = merchant.delivery.method === 'self'
         ? merchant.delivery.price
-        : settings.deliveryCharge;
+        : settings.stateSettings(delivery.location.state).deliveryCharge;
       const transaction = await paystack.transaction.initialize({
         reference: req.planner ? req.planner.reference : savedOrder.id,
         amount: req.planner ? req.planner.priceTotal * 100 : priceTotal * 100,
@@ -131,16 +148,14 @@ const orderActions = {
         {
           priceTotal,
           delivery: {
-            ...merchant.delivery,
-            ...customer.delivery,
-            ...req.body.delivery,
+            ...delivery,
             price,
           },
           payment: {
             accessCode: req.planner ? '' : transaction.data.access_code,
           },
         },
-        { runValidators: true, new: true },
+        { new: true },
       )
         .populate({
           path: 'customer',
@@ -290,7 +305,7 @@ const orderActions = {
       const order = await Order.findByIdAndUpdate(
         req.scopedOrder.id,
         { rating, comment },
-        { runValidators: true, new: true },
+        { new: true },
       );
       return res.success(order);
     } catch (err) {
@@ -376,9 +391,14 @@ const orderActions = {
             ({ delivery }) => delivery.method !== 'self',
           ).length;
           const merchantOrders = ordersByMerchant[merchant].map((order) => {
-            const deliveryCharge = order.delivery.method === 'self' ? 0 : settings.deliveryCharge;
+            const stateSettings = settings.stateSettings(
+              order.delivery.location.state,
+            );
+            const deliveryCharge = order.delivery.method === 'self'
+              ? 0
+              : stateSettings.deliveryCharge;
             const itemValue = order.priceTotal - deliveryCharge;
-            const serviceCharge = (itemValue * settings.servicePercentage) / 100;
+            const serviceCharge = (itemValue * stateSettings.servicePercentage) / 100;
             const { month, year } = DateTime.fromJSDate(order.createdAt);
 
             return {
@@ -513,13 +533,10 @@ const orderActions = {
   async update(req, res, next) {
     const { status, pickupTime } = req.body;
     try {
-      await req.scopedOrder.update(
-        {
-          status,
-          pickupTime,
-        },
-        { runValidators: true },
-      );
+      await req.scopedOrder.update({
+        status,
+        pickupTime,
+      });
       const merchant = await User.findById(req.params.id);
 
       const updatedOrder = await Order.findOne({
