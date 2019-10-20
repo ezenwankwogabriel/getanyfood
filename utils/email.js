@@ -7,7 +7,7 @@ const RootDir = require('../rootDir');
 class Email {
   constructor(details) {
     this.details = details;
-    this.email = process.env.getanyEmail;
+    this.email = process.env.getanySupport;
     this.appName = process.env.appName;
     this.ip = config.get('api');
   }
@@ -18,7 +18,7 @@ class Email {
     } = this.details;
     const date = new Date().toDateString();
     const emailTemplate = await ejs.renderFile(`${RootDir}/views/${template}.ejs`, {
-      to, ...rest, date, ip: this.ip,
+      to, ...rest, date, ip: this.ip, link: false,
     });
     return emailTemplate;
   }

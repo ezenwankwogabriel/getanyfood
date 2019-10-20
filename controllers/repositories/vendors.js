@@ -94,13 +94,12 @@ module.exports = class AuditTrail {
     const { firstName, lastName } = req.user;
     req.body.template = 'email';
     const body = {
-      email: req.body.emailAddress,
+      email: process.env.getanyEmail,
       template: 'email',
       subject: 'New Vendor Recommended',
       content: `A new vendor ${businessName} with address ${businessAddress}, email ${emailAddress} and phone number ${phoneNumber} has been recommended by ${lastName} ${firstName}.
      Comment about vendor: ${comment}`,
     };
-    delete req.body.emailAddress;
     const email = utils.Email(body);
     await email.send();
     res.success();
