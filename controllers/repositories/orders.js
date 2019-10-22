@@ -763,6 +763,70 @@ const orderActions = {
       next(err);
     }
   },
+
+  async adminOrderStats(req, res, next) {
+    try {
+      const orders = await Order.find({ 'payment.status': 'success' });
+
+      const orderCount = orders.length;
+      const { salesSum: totalSales, revenueSum: totalRevenue } = orders
+        .map((order) => {
+          const sales = order.priceTotal - order.delivery.price;
+          const revenue = (sales * order.servicePercentage) / 100;
+
+          return { sales, revenue };
+        })
+        .reduce(
+          ({ salesSum, revenueSum }, { sales, revenue }) => ({
+            salesSum: salesSum + sales,
+            revenueSum: revenueSum + revenue,
+          }),
+          { salesSum: 0, revenueSum: 0 },
+        );
+
+      res.success({ orderCount, totalSales, totalRevenue });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async revenueStats(req, res, next) {
+    try {
+      const orders = await Order.find({ 'payment.status': 'success' });
+
+      const revenueStats = orders.map((order) => {
+        const { month, year } = DateTime.fromJSDate(order.createdAt);
+
+        const orderValue = order.priceTotal - order.delivery.price;
+        const serviceCharge = (orderValue * order.servicePercentage) / 100;
+        const deliveryCharge = order.delivery.method === 'getanyfood' ? order.delivery.price : 0;
+
+        const revenue = serviceCharge + deliveryCharge;
+
+        return {
+          month,
+          year,
+          period: `${year}${month}`,
+          amount: revenue,
+        };
+      });
+
+      const groupedStats = groupBy(revenueStats, 'period');
+
+      const stats = Object.keys(groupedStats).map(period => groupedStats[period].reduce(
+        ({ amount: totalAmount }, { month, year, amount }) => ({
+          month,
+          year,
+          amount: totalAmount + amount,
+        }),
+        { amount: 0 },
+      ));
+
+      res.success(stats);
+    } catch (err) {
+      next(err);
+    }
+  },
 };
 
 module.exports = orderActions;

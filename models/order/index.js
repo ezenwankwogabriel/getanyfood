@@ -56,7 +56,7 @@ const orderSchema = new Schema(
     },
     delivery: {
       method: String,
-      price: String,
+      price: Number,
       location: {
         state: String,
         city: String,

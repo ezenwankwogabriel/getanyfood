@@ -25,11 +25,15 @@ router.get('/delivery-requests', Order.showDeliveryRequests);
 
 router.get('/delivery-requests.csv', Order.exportDeliveryRequests);
 
-router.get('/stats/signups', User.signupStats);
+router.get('/stats/orders', Order.adminOrderStats);
 
-router.use('/:id', User.scopeRequest('super_admin'));
+router.get('/stats/revenue', Order.revenueStats);
 
-router.get('/:id', User.showOne);
+router.get('/stats/users', User.signupStats);
+
+router.get('/stats/signups', User.signupGrowthStats);
+
+router.get('/:id', User.scopeRequest('super_admin'), User.showOne);
 
 router.patch('/:id', User.scopeRequest('super_admin', true), User.update);
 
