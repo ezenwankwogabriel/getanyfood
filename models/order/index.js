@@ -56,16 +56,19 @@ const orderSchema = new Schema(
     },
     delivery: {
       method: String,
-      price: String,
+      price: Number,
       location: {
         state: String,
         city: String,
-        area: String,
         address: String,
         lat: Number,
         lng: Number,
       },
       instructions: String,
+    },
+    servicePercentage: {
+      type: Number,
+      min: 0,
     },
     rating: { type: Number, min: 1, max: 5 },
     comment: String,

@@ -1,3 +1,5 @@
+const { DateTime } = require('luxon');
+const { groupBy } = require('lodash');
 const User = require('../../models/user');
 const utils = require('../../utils');
 
@@ -134,6 +136,62 @@ const userActions = {
         await req.scopedUser.remove();
       }
       res.success();
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async signupStats(req, res, next) {
+    try {
+      const [merchants, customers] = await Promise.all([
+        User.countDocuments({
+          userType: 'merchant',
+        }),
+        User.countDocuments({
+          userType: 'customer',
+        }),
+      ]);
+
+      res.success({ merchants, customers });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async signupGrowthStats(req, res, next) {
+    try {
+      const users = await User.find({
+        userType: { $in: ['merchant', 'customer'] },
+      });
+      const refinedUsers = users.map((user) => {
+        const { month, year } = DateTime.fromJSDate(user.created_time);
+        return {
+          userType: user.userType,
+          month,
+          year,
+          period: `${year}${month}`,
+        };
+      });
+      const groupedUsers = groupBy(refinedUsers, 'userType');
+      const stats = {};
+
+      Object.keys(groupedUsers).map((userType) => {
+        const group = groupedUsers[userType];
+        const usersByPeriod = groupBy(group, 'period');
+        const periodStats = Object.keys(usersByPeriod).map(period => usersByPeriod[period].reduce(
+          ({ signups: total }, { month, year }) => ({
+            month,
+            year,
+            signups: total + 1,
+          }),
+          { signups: 0 },
+        ));
+
+        stats[userType] = periodStats;
+        return true;
+      });
+
+      res.success(stats);
     } catch (err) {
       next(err);
     }
