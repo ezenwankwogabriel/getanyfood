@@ -239,6 +239,24 @@ const productActions = {
           },
         ],
       };
+      const {
+        name, amount, category, startDate, endDate,
+      } = req.query;
+      if (name) {
+        queryOptions.name = new RegExp(name, 'i');
+      }
+      if (amount) {
+        queryOptions.price = amount;
+      }
+      if (category) {
+        queryOptions.category = category;
+      }
+      if (startDate && endDate) {
+        queryOptions.createdAt = {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        };
+      }
       try {
         const products = await utils.PaginateRequest(
           req,
@@ -900,6 +918,24 @@ const productActions = {
         },
       ],
     };
+    const {
+      name, amount, category, startDate, endDate,
+    } = req.query;
+    if (name) {
+      queryOptions.name = new RegExp(name, 'i');
+    }
+    if (amount) {
+      queryOptions.price = amount;
+    }
+    if (category) {
+      queryOptions.category = category;
+    }
+    if (startDate && endDate) {
+      queryOptions.createdAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
     try {
       const products = await utils.PaginateRequest(req, queryOptions, Product);
       res.success(products);
