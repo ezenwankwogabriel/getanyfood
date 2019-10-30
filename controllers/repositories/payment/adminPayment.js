@@ -47,16 +47,7 @@ module.exports = class Payment {
         update: { status: true },
       },
     }));
-    const userQuery = payments.map(payment => ({
-      updateOne: {
-        filter: { _id: payment.merchant },
-        update: { $inc: { walletAmount: -payment.amount } },
-      },
-    }));
-    await Promise.all([
-      User.bulkWrite(userQuery),
-      PaymentModel.bulkWrite(paymentQuery),
-    ]);
+    await PaymentModel.bulkWrite(paymentQuery);
     return res.success(`${paymentIds.length > 0 ? 'Requests' : 'Request'}  marked as Paid`);
   }
 

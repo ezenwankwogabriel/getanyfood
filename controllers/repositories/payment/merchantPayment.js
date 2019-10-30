@@ -36,13 +36,20 @@ module.exports = class MerchantPayment {
     const { walletAmount, _id: merchant, businessName } = req.user;
     const { _id: admin } = await UserModel.findOne({ userType: 'super_admin' });
     if (walletAmount < amount) return res.badRequest('Amount requested exceeds wallet amount');
-    await new PaymentModel({
+
+    const amountLeft = walletAmount - Number(amount);
+    req.user.walletAmount = amountLeft;
+    const payment = {
       merchant,
       amount,
       transactionNumber: shortId.generate(),
       bankName,
       accountNumber,
-    }).save();
+    };
+    await Promise.all([
+      new PaymentModel(payment).save(),
+      req.user.save(),
+    ]);
     SendNotification({
       message: `New request for payment by ${businessName}`,
       notificationTo: admin,
