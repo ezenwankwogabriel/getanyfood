@@ -28,12 +28,12 @@ async function fetchNotification({ limit, page, adminId }) {
       },
     };
     const query = {
-      populate: { path: 'notificationFrom', select: 'profileThumbnail' },
+      populate: { path: 'notificationFrom', select: 'profileThumbnail profilePhoto' },
     };
     if (limit) req.query.limit = limit;
     if (page) req.query.page = page;
     if (!adminId) return false;
-    query.adminId = adminId;
+    query.notificationTo = adminId;
     const notifications = await utils.PaginateRequest(req, query, NotificationModel);
     return notifications;
   } catch (ex) {
@@ -42,9 +42,7 @@ async function fetchNotification({ limit, page, adminId }) {
 }
 
 function fetchNotificationController(socket, emitType) {
-  return async ({
-    limit, page, adminId,
-  }) => {
+  return async ({ limit, page, adminId }) => {
     try {
       const notifications = await fetchNotification({ limit, page, adminId });
       socket.emit(emitType, notifications);
