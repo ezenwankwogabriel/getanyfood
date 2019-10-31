@@ -385,7 +385,10 @@ const orderActions = {
       let stats = [];
       await Promise.all(
         Object.keys(ordersByMerchant).map(async (merchant) => {
-          const merchantDoc = await User.findById(merchant, 'businessName');
+          const merchantDoc = await User.findById(
+            merchant,
+            'businessName emailAddress phoneNumber',
+          );
           const orderCount = ordersByMerchant[merchant].length;
           const deliveryCount = ordersByMerchant[merchant].filter(
             ({ delivery }) => delivery.method !== 'self',
