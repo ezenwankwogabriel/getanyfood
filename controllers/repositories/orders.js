@@ -732,9 +732,11 @@ const orderActions = {
         'payment.status': 'success',
       }).sort({ $natural: 1 });
 
-      const { month: startMonth, year: startYear } = DateTime.fromJSDate(
-        firstOrder.createdAt,
-      );
+      const startDate = firstOrder
+        ? DateTime.fromJSDate(firstOrder.createdAt)
+        : new DateTime('now').startOf('year');
+
+      const { month: startMonth, year: startYear } = startDate;
 
       const { month: currentMonth, year: currentYear } = new DateTime('now');
 
