@@ -21,7 +21,7 @@ const orderSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['rejected', 'pending', 'accepted', 'completed'],
+      enum: ['rejected', 'pending', 'accepted', 'completed', 'failed'],
       default: 'pending',
       required: true,
     },
@@ -72,6 +72,7 @@ const orderSchema = new Schema(
     },
     rating: { type: Number, min: 1, max: 5 },
     comment: String,
+    completedAt: { type: Date },
   },
   { timestamps: true },
 );

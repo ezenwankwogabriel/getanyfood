@@ -236,6 +236,11 @@ const orderActions = {
           model: User,
           select: '-password -deleted',
         },
+        {
+          path: 'items.product',
+          model: Product,
+          select: '-password -deleted',
+        },
       ],
     };
     try {
@@ -258,6 +263,11 @@ const orderActions = {
         {
           path: 'merchant',
           model: User,
+          select: '-password -deleted',
+        },
+        {
+          path: 'items.product',
+          model: Product,
           select: '-password -deleted',
         },
       ],
@@ -527,14 +537,20 @@ const orderActions = {
     }
   },
 
-  // eslint-disable-next-line consistent-return
   async update(req, res, next) {
+    if (['rejected', 'failed', 'completed'].includes(req.scopedOrder.status)) {
+      return res.badRequest('This order cannot be modified.');
+    }
     const { status, pickupTime } = req.body;
+    const orderUpdate = {
+      status,
+      pickupTime,
+    };
+    if (orderUpdate.status === 'completed') {
+      orderUpdate.completedAt = new Date();
+    }
     try {
-      await req.scopedOrder.update({
-        status,
-        pickupTime,
-      });
+      await req.scopedOrder.update();
       const merchant = await User.findById(req.params.id);
 
       const updatedOrder = await Order.findOne({
