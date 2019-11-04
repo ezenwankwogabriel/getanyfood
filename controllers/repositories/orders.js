@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 const crypto = require('crypto');
-const paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
+const paystack = require('paystack-api')(process.env.PAYSTACK_SECRET_KEY);
 const { groupBy, sortBy } = require('lodash');
 const { DateTime } = require('luxon');
 const utils = require('../../utils');
