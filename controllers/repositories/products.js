@@ -399,7 +399,14 @@ const productActions = {
     }
 
     try {
-      const products = await Product.find(queryOptions, '_id name type');
+      const products = await Product.find(
+        queryOptions,
+        '_id name type category',
+      ).populate({
+        path: 'category',
+        model: ProductCategory,
+        select: '_id name',
+      });
 
       const stats = await Promise.all(
         products.map(async (product) => {
