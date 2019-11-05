@@ -38,16 +38,11 @@ const orderActions = {
       })
         .populate({
           path: 'items.product',
-          model: Product,
         })
         .populate({
           path: 'customer',
           model: User,
           select: '-password -deleted',
-        })
-        .populate({
-          path: 'items.product',
-          select: 'type description',
         })
         .populate({
           path: 'merchant',
@@ -576,19 +571,11 @@ const orderActions = {
     const {
       _id: orderId,
       merchant: {
-        _id: orderMerchantId,
         delivery: { method },
       },
       customer: { emailAddress: customerEmailAddress, fullName: customerName },
     } = req.scopedOrder;
     try {
-      if (merchantId !== orderMerchantId) {
-        return res.unAuthenticated(
-          'You do not have the permission to update this job',
-        );
-      }
-      req.scopedOrder.status = status;
-      req.scopedOrder.pickupTime = pickupTime;
       if (['rejected', 'failed'].includes(status)) {
         const refund = await paystack.refund
           .create({
@@ -601,6 +588,13 @@ const orderActions = {
         orderUpdate['payment.status'] = refund.status;
 
         await req.scopedOrder.update(orderUpdate);
+      } else {
+        await Promise.all([
+          req.scopedOrder.update(orderUpdate),
+          status === 'accepted'
+            && method === 'getanyfood'
+            && sendToNester(req.scopedOrder),
+        ]);
       }
 
       const updatedOrder = await Order.findOne({
@@ -618,17 +612,11 @@ const orderActions = {
           select: '-password -deleted',
         });
 
-      await Promise.all([
-        status === 'accepted'
-          && method === 'getanyfood'
-          && sendToNester(updatedOrder),
-      ]);
-
       SendNotification({
-        message: `Request with id by ${updatedOrder._id} has been updated to ${status}`,
-        orderNumber: updatedOrder._id,
-        notificationTo: updatedOrder._id,
-        notificationFrom: req.user._id,
+        message: `Request with id by ${orderId} has been updated to ${status}`,
+        orderNumber: orderId,
+        notificationTo: merchantId,
+        notificationFrom: merchantId,
       });
       if (status.includes(['accepted', 'completed'])) {
         let content;
