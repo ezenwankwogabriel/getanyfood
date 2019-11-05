@@ -401,7 +401,7 @@ const productActions = {
     try {
       const products = await Product.find(
         queryOptions,
-        '_id name type category',
+        '_id name type category price subProducts',
       ).populate({
         path: 'category',
         model: ProductCategory,
@@ -426,10 +426,32 @@ const productActions = {
             0,
           );
 
+          const amount = orders.reduce(
+            (total, { items }) => total
+              + items
+                .filter(item => String(item.product) === String(product.id))
+                .reduce((totalPrice, item) => {
+                  let { price } = product;
+                  if (item.subProduct) {
+                    price += product.subProducts.id(item.subProduct)
+                      .priceDifference;
+                  }
+                  return totalPrice + price;
+                }, 0),
+            0,
+          );
+
+          const {
+            _id, name, type, category,
+          } = product;
+
           return {
-            // eslint-disable-next-line no-underscore-dangle
-            ...product._doc,
+            _id,
+            name,
+            type,
+            category,
             unitsOrdered,
+            amount,
           };
         }),
       );
