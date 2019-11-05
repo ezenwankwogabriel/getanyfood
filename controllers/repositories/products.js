@@ -632,7 +632,7 @@ const productActions = {
 
               const refinedOrders = orders.map(order => ({
                 items: order.items,
-                year: DateTime.fromJSDate(order.createdAt).year,
+                year: Number(DateTime.fromJSDate(order.createdAt).year),
               }));
 
               const refinedOrdersByYear = groupBy(refinedOrders, 'year');
@@ -653,7 +653,10 @@ const productActions = {
                   0,
                 );
 
-                return unitsOrderedByYear.push({ year, unitsOrdered });
+                return unitsOrderedByYear.push({
+                  year: Number(year),
+                  unitsOrdered,
+                });
               });
 
               const productCreationYear = DateTime.fromJSDate(product.createdAt)
@@ -758,7 +761,7 @@ const productActions = {
 
           const refinedOrders = orders.map(order => ({
             items: order.items,
-            year: DateTime.fromJSDate(order.createdAt).year,
+            year: Number(DateTime.fromJSDate(order.createdAt).year),
           }));
 
           const refinedOrdersByYear = groupBy(refinedOrders, 'year');
@@ -777,7 +780,10 @@ const productActions = {
               0,
             );
 
-            return unitsOrderedByYear.push({ year, unitsOrdered });
+            return unitsOrderedByYear.push({
+              year: Number(year),
+              unitsOrdered,
+            });
           });
 
           const productCreationYear = DateTime.fromJSDate(product.createdAt)
