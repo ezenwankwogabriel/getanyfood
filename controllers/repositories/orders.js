@@ -544,13 +544,26 @@ const orderActions = {
     const { status, pickupTime } = req.body;
     const orderUpdate = {
       status,
-      pickupTime,
     };
-    if (orderUpdate.status === 'completed') {
+    if (status === 'accepted') {
+      orderUpdate.pickupTime = pickupTime;
+    }
+    if (status === 'completed') {
       orderUpdate.completedAt = new Date();
     }
     try {
-      await req.scopedOrder.update();
+      if (['rejected', 'failed'].includes(status)) {
+        const refund = await paystack.refund
+          .create({
+            transaction: req.scopedOrder.id,
+            amount: req.scopedOrder.priceTotal * 100,
+            currency: 'NGN',
+          })
+          .then(({ data }) => data);
+        orderUpdate['payment.refund'] = true;
+        orderUpdate['payment.status'] = refund.status;
+      }
+      await req.scopedOrder.update(orderUpdate);
       const merchant = await User.findById(req.params.id);
 
       const updatedOrder = await Order.findOne({

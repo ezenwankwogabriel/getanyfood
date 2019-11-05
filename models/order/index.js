@@ -53,6 +53,7 @@ const orderSchema = new Schema(
         default: 'pending',
         required: true,
       },
+      refund: { type: Boolean },
     },
     delivery: {
       method: String,
