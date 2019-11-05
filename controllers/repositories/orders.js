@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 const crypto = require('crypto');
-const paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
+const paystack = require('paystack-api')(process.env.PAYSTACK_SECRET_KEY);
 const { groupBy, sortBy } = require('lodash');
 const { DateTime } = require('luxon');
 const utils = require('../../utils');
@@ -15,7 +15,6 @@ const {
   SendNotification,
 } = require('../../controllers/repositories/notification');
 const { Email, sendToNester } = require('../../utils');
-
 
 function search(model, query, options = {}) {
   return new Promise((resolve, reject) => {
@@ -562,34 +561,72 @@ const orderActions = {
       return res.badRequest('This order cannot be modified.');
     }
     const { status, pickupTime } = req.body;
-    const orderUpdate = { status, pickupTime };
-    if (orderUpdate.status === 'completed') {
+    const orderUpdate = {
+      status,
+    };
+    if (status === 'accepted') {
+      orderUpdate.pickupTime = pickupTime;
+    }
+    if (status === 'completed') {
       orderUpdate.completedAt = new Date();
     }
     const { _id: merchantId } = req.user;
     const {
       _id: orderId,
-      merchant: { _id: orderMerchantId, delivery: { method } },
-      customer: {
-        emailAddress: customerEmailAddress,
-        fullName: customerName,
+      merchant: {
+        _id: orderMerchantId,
+        delivery: { method },
       },
+      customer: { emailAddress: customerEmailAddress, fullName: customerName },
     } = req.scopedOrder;
     try {
-      if (merchantId !== orderMerchantId) return res.unAuthenticated('You do not have the permission to update this job');
+      if (merchantId !== orderMerchantId) {
+        return res.unAuthenticated(
+          'You do not have the permission to update this job',
+        );
+      }
       req.scopedOrder.status = status;
       req.scopedOrder.pickupTime = pickupTime;
+      if (['rejected', 'failed'].includes(status)) {
+        const refund = await paystack.refund
+          .create({
+            transaction: req.scopedOrder.id,
+            amount: req.scopedOrder.priceTotal * 100,
+            currency: 'NGN',
+          })
+          .then(({ data }) => data);
+        orderUpdate['payment.refund'] = true;
+        orderUpdate['payment.status'] = refund.status;
+
+        await req.scopedOrder.update(orderUpdate);
+      }
+
+      const updatedOrder = await Order.findOne({
+        _id: req.params.orderId,
+        merchant: req.params.id,
+      })
+        .populate({
+          path: 'customer',
+          model: User,
+          select: '-password -deleted',
+        })
+        .populate({
+          path: 'merchant',
+          model: User,
+          select: '-password -deleted',
+        });
 
       await Promise.all([
-        req.scopedOrder.save(),
-        status === 'accepted' && method === 'getanyfood' && sendToNester(req.scopedOrder),
+        status === 'accepted'
+          && method === 'getanyfood'
+          && sendToNester(updatedOrder),
       ]);
 
       SendNotification({
-        message: `Request with id ${orderId} has been updated to ${status}`,
-        orderNumber: orderId,
-        notificationTo: merchantId,
-        notificationFrom: merchantId,
+        message: `Request with id by ${updatedOrder._id} has been updated to ${status}`,
+        orderNumber: updatedOrder._id,
+        notificationTo: updatedOrder._id,
+        notificationFrom: req.user._id,
       });
       if (status.includes(['accepted', 'completed'])) {
         let content;
@@ -606,7 +643,7 @@ const orderActions = {
         Email(details).send();
       }
 
-      return res.success(req.scopedOrder);
+      return res.success(updatedOrder);
     } catch (err) {
       return next(err);
     }

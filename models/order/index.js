@@ -22,8 +22,16 @@ const orderSchema = new Schema(
     status: {
       type: String,
       enum: [
-        'rejected', 'pending', 'accepted', 'pickup ongoing', 'pickup completed',
-        'delivery ongoing', 'delivery completed', 'completed', 'onging', 'failed',
+        'rejected',
+        'pending',
+        'accepted',
+        'pickup ongoing',
+        'pickup completed',
+        'delivery ongoing',
+        'delivery completed',
+        'completed',
+        'onging',
+        'failed',
       ],
       default: 'pending',
       required: true,
@@ -56,6 +64,7 @@ const orderSchema = new Schema(
         default: 'pending',
         required: true,
       },
+      refund: { type: Boolean },
     },
     delivery: {
       method: String,
