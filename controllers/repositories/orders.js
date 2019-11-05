@@ -14,7 +14,8 @@ const PaymentHistory = require('../../models/payment/paymentHistory');
 const {
   SendNotification,
 } = require('../../controllers/repositories/notification');
-const { Email } = require('../../utils');
+const { Email, sendToNester } = require('../../utils');
+
 
 function search(model, query, options = {}) {
   return new Promise((resolve, reject) => {
@@ -40,6 +41,10 @@ const orderActions = {
           path: 'customer',
           model: User,
           select: '-password -deleted',
+        })
+        .populate({
+          path: 'items.product',
+          select: 'type description',
         })
         .populate({
           path: 'merchant',
@@ -537,54 +542,71 @@ const orderActions = {
     }
   },
 
+  async updateFromNester(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const order = await Order.findById(id);
+      if (order.status === 'delivery completed') return res.unAuthorized('Job has already been completed');
+      order.status = status;
+      await order.save();
+      return res.success('Updated successfully');
+    } catch (ex) {
+      return next(ex);
+    }
+  },
+
+  // eslint-disable-next-line consistent-return
   async update(req, res, next) {
     if (['rejected', 'failed', 'completed'].includes(req.scopedOrder.status)) {
       return res.badRequest('This order cannot be modified.');
     }
     const { status, pickupTime } = req.body;
-    const orderUpdate = {
-      status,
-      pickupTime,
-    };
+    const orderUpdate = { status, pickupTime };
     if (orderUpdate.status === 'completed') {
       orderUpdate.completedAt = new Date();
     }
+    const { _id: merchantId } = req.user;
+    const {
+      _id: orderId,
+      merchant: { _id: orderMerchantId, delivery: { method } },
+      customer: {
+        emailAddress: customerEmailAddress,
+        fullName: customerName,
+      },
+    } = req.scopedOrder;
     try {
-      await req.scopedOrder.update();
-      const merchant = await User.findById(req.params.id);
+      if (merchantId !== orderMerchantId) return res.unAuthenticated('You do not have the permission to update this job');
+      req.scopedOrder.status = status;
+      req.scopedOrder.pickupTime = pickupTime;
 
-      const updatedOrder = await Order.findOne({
-        _id: req.params.orderId,
-        merchant: req.params.id,
-      })
-        .populate({
-          path: 'customer',
-          model: User,
-          select: '-password -deleted',
-        })
-        .populate({
-          path: 'merchant',
-          model: User,
-          select: '-password -deleted',
-        });
+      await Promise.all([
+        req.scopedOrder.save(),
+        status === 'accepted' && method === 'getanyfood' && sendToNester(req.scopedOrder),
+      ]);
 
       SendNotification({
-        message: `Request with id by ${updatedOrder._id} has been updated to ${status}`,
-        orderNumber: updatedOrder._id,
-        notificationTo: updatedOrder._id,
-        notificationFrom: req.user._id,
+        message: `Request with id ${orderId} has been updated to ${status}`,
+        orderNumber: orderId,
+        notificationTo: merchantId,
+        notificationFrom: merchantId,
       });
-      const details = {
-        email: merchant.emailAddress,
-        subject: 'Request Status Update',
-        content: `Request with id by ${updatedOrder._id} has been updated to ${status}`,
-        template: 'email',
-        link: `${req.query.path}?id=${updatedOrder._id}`,
-        button: 'View Request',
-      };
-      Email(details).send();
+      if (status.includes(['accepted', 'completed'])) {
+        let content;
+        if (status === 'accepted') content = `Dear ${customerName}, your order has been confirmed, your food item would be delivered as soon as possible`;
+        if (status === 'completed') content = `Dear ${customerName}, your order has been completed`;
+        const details = {
+          email: customerEmailAddress,
+          subject: 'Request Status Update',
+          content,
+          template: 'email',
+          link: `${req.query.path}?id=${orderId}`,
+          button: 'View Request',
+        };
+        Email(details).send();
+      }
 
-      return res.success(updatedOrder);
+      return res.success(req.scopedOrder);
     } catch (err) {
       return next(err);
     }

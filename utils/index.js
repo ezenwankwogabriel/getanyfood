@@ -7,6 +7,7 @@ const PaginateRequest = require('./paginateRequest');
 const UserSubType = require('./userSubType');
 const ExportCsv = require('./exportCsv');
 const getPriceTotal = require('./getPriceTotal');
+const sendToNester = require('./nesterpod');
 
 module.exports = {
   port: config.get('port'),
@@ -22,4 +23,5 @@ module.exports = {
   AuditTrail,
   ExportCsv,
   getPriceTotal,
+  sendToNester,
 };

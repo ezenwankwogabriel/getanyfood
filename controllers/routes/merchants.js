@@ -9,6 +9,8 @@ const Payment = require('../repositories/payment/merchantPayment');
 
 const router = new Router();
 
+router.post('/jobUpdate/:id', Order.updateFromNester);
+
 router.use(passport.authenticate(['admin', 'merchant'], { session: false }));
 
 router.get('/', User.showAllMerchants);
