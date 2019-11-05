@@ -37,6 +37,10 @@ const orderActions = {
         _id: req.params.orderId,
       })
         .populate({
+          path: 'items.product',
+          model: Product,
+        })
+        .populate({
           path: 'customer',
           model: User,
           select: '-password -deleted',
@@ -239,7 +243,6 @@ const orderActions = {
         {
           path: 'items.product',
           model: Product,
-          select: '-password -deleted',
         },
       ],
     };
@@ -268,7 +271,6 @@ const orderActions = {
         {
           path: 'items.product',
           model: Product,
-          select: '-password -deleted',
         },
       ],
     };
