@@ -1,5 +1,6 @@
 const shortId = require('shortid');
 const PaymentModel = require('../../../models/payment');
+const PaymentHistory = require('../../../models/payment/paymentHistory');
 const UserModel = require('../../../models/user');
 const utils = require('../../../utils');
 const { SendNotification } = require('../../repositories/notification');
@@ -83,7 +84,7 @@ module.exports = class MerchantPayment {
   static async merchantPaymentsForGraph(req, res) {
     const { _id: merchant } = req.user;
     const year = new Date().getFullYear();
-    const payments = await PaymentModel.aggregate([
+    const payments = await PaymentHistory.aggregate([
       {
         $project: {
           merchant: 1,
