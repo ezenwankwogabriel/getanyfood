@@ -18,13 +18,38 @@ module.exports = class MerchantPayment {
       };
     }
 
-    const paymentRequest = await utils.PaginateRequest(req, query, PaymentModel);
+    const paymentRequest = await utils.PaginateRequest(
+      req,
+      query,
+      PaymentModel,
+    );
     const unwindPath = 'merchant';
     // const newss = await PaymentModel.find();
     if (isExports === 'true') {
-      const fields = ['merchant.businessName', 'amount', 'transactionNumber', 'bankName', 'accountNumber', 'status', 'createdAt'];
-      const fieldNames = ['Merchant', 'Amount', 'Transaction Number', 'Bank Name', 'Account Number', 'Status', 'Date Created'];
-      const csv = await utils.ExportCsv(fields, fieldNames, paymentRequest.docs, unwindPath);
+      const fields = [
+        'merchant.businessName',
+        'amount',
+        'transactionNumber',
+        'bankName',
+        'accountNumber',
+        'status',
+        'createdAt',
+      ];
+      const fieldNames = [
+        'Merchant',
+        'Amount',
+        'Transaction Number',
+        'Bank Name',
+        'Account Number',
+        'Status',
+        'Date Created',
+      ];
+      const csv = await utils.ExportCsv(
+        fields,
+        fieldNames,
+        paymentRequest.docs,
+        unwindPath,
+      );
       res.attachment('Payment.csv');
       return res.end(csv);
     }
@@ -46,15 +71,31 @@ module.exports = class MerchantPayment {
       bankName,
       accountNumber,
     };
-    await Promise.all([
-      new PaymentModel(payment).save(),
-      req.user.save(),
-    ]);
+    await Promise.all([new PaymentModel(payment).save(), req.user.save()]);
     SendNotification({
       message: `New request for payment by ${businessName}`,
       notificationTo: admin,
       notificationFrom: merchant,
     });
     return res.success('successful');
+  }
+
+  static async merchantPaymentsForGraph(req, res) {
+    const { _id: merchant } = req.user;
+    const year = new Date().getFullYear();
+    const payments = await PaymentModel.aggregate([
+      {
+        $project: {
+          merchant: 1,
+          amount: 1,
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' },
+        },
+      },
+      { $match: { year, merchant } },
+      { $group: { _id: '$month', total: { $sum: '$amount' } } },
+      { $sort: { total: -1 } },
+    ]);
+    return res.success(payments);
   }
 };

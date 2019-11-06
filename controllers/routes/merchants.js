@@ -15,6 +15,8 @@ router.use(passport.authenticate(['admin', 'merchant'], { session: false }));
 
 router.get('/', User.showAllMerchants);
 
+router.get('/payment-graph', Payment.merchantPaymentsForGraph);
+
 router.get('/payment/:isExports?', Payment.getPayment);
 
 router.post('/request-withdrawal', Payment.requestWithdrawal);
