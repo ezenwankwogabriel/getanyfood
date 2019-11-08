@@ -7,6 +7,7 @@ const PaginateRequest = require('./paginateRequest');
 const UserSubType = require('./userSubType');
 const ExportCsv = require('./exportCsv');
 const getPriceTotal = require('./getPriceTotal');
+const generateOrderId = require('./generateOrderId');
 const sendToNester = require('./nesterpod');
 
 module.exports = {
@@ -23,5 +24,6 @@ module.exports = {
   AuditTrail,
   ExportCsv,
   getPriceTotal,
+  generateOrderId,
   sendToNester,
 };
