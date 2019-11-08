@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate');
+const { generateOrderId } = require('../../utils');
 
 const { Schema } = mongoose;
 const { ObjectId } = Schema.Types;
 
 const orderSchema = new Schema(
   {
+    reference: { type: String, default: generateOrderId, required: true },
     customer: { type: ObjectId, ref: 'User', required: true },
     merchant: { type: ObjectId, ref: 'User', required: true },
     planner: {

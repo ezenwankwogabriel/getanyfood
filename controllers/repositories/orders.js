@@ -14,7 +14,7 @@ const PaymentHistory = require('../../models/payment/paymentHistory');
 const {
   SendNotification,
 } = require('../../controllers/repositories/notification');
-const { Email, sendToNester } = require('../../utils');
+const { Email, generateOrderId, sendToNester } = require('../../utils');
 
 function search(model, query, options = {}) {
   return new Promise((resolve, reject) => {
@@ -38,6 +38,7 @@ const orderActions = {
       })
         .populate({
           path: 'items.product',
+          model: Product,
         })
         .populate({
           path: 'customer',
@@ -72,6 +73,7 @@ const orderActions = {
       const order = new Order({
         ...rest,
         customer: req.user.id,
+        reference: generateOrderId(),
       });
       if (endDate && startDate) {
         // save as planner if not exist
