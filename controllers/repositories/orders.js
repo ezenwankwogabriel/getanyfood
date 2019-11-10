@@ -7,6 +7,7 @@ const utils = require('../../utils');
 const collate = require('../../utils/collate');
 const User = require('../../models/user');
 const Product = require('../../models/product');
+const ProductCategory = require('../../models/product/category');
 const Order = require('../../models/order');
 const Setting = require('../../models/setting');
 const WeeklyPlanner = require('../../models/planner');
@@ -50,6 +51,10 @@ const orderActions = {
         .populate({
           path: 'items.product',
           model: Product,
+        })
+        .populate({
+          path: 'items.product.category',
+          model: ProductCategory,
         })
         .populate({
           path: 'customer',
@@ -260,7 +265,29 @@ const orderActions = {
     };
     try {
       const orders = await utils.PaginateRequest(req, queryOptions, Order);
-      res.success(orders);
+      const ordersWithCategories = await Promise.all(
+        orders.docs.map(async (order) => {
+          const itemsWithCategories = await Promise.all(
+            order.items.map(async (item) => {
+              const category = await ProductCategory.findById(
+                item.product.category,
+                '_id name',
+              );
+
+              // eslint-disable-next-line no-param-reassign
+              item.product.category = category;
+
+              return item;
+            }),
+          );
+
+          // eslint-disable-next-line no-param-reassign
+          order.items = itemsWithCategories;
+
+          return order;
+        }),
+      );
+      res.success({ ...orders, docs: ordersWithCategories });
     } catch (err) {
       next(err);
     }
@@ -308,14 +335,53 @@ const orderActions = {
 
     try {
       const orders = await utils.PaginateRequest(req, queryOptions, Order);
-      res.success(orders);
+      const ordersWithCategories = await Promise.all(
+        orders.docs.map(async (order) => {
+          const itemsWithCategories = await Promise.all(
+            order.items.map(async (item) => {
+              const category = await ProductCategory.findById(
+                item.product.category,
+                '_id name',
+              );
+
+              // eslint-disable-next-line no-param-reassign
+              item.product.category = category;
+
+              return item;
+            }),
+          );
+
+          // eslint-disable-next-line no-param-reassign
+          order.items = itemsWithCategories;
+
+          return order;
+        }),
+      );
+      res.success({ ...orders, docs: ordersWithCategories });
     } catch (err) {
       next(err);
     }
   },
 
-  showOne(req, res) {
-    res.success(req.scopedOrder);
+  async showOne(req, res) {
+    const order = req.scopedOrder;
+    const itemsWithCategories = await Promise.all(
+      order.items.map(async (item) => {
+        const category = await ProductCategory.findById(
+          item.product.category,
+          '_id name',
+        );
+
+        // eslint-disable-next-line no-param-reassign
+        item.product.category = category;
+
+        return item;
+      }),
+    );
+
+    // eslint-disable-next-line no-param-reassign
+    order.items = itemsWithCategories;
+    res.success(order);
   },
 
   async reviewOrder(req, res, next) {
@@ -473,8 +539,8 @@ const orderActions = {
 
   async showDeliveryRequests(req, res, next) {
     const queryOptions = {
-      status: { $ne: 'rejected' },
-      'delivery.method': { $ne: 'self' },
+      status: { $nin: ['rejected', 'failed'] },
+      'delivery.method': 'getanyfood',
       populate: [
         {
           path: 'customer',
