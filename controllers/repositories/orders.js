@@ -25,8 +25,19 @@ function search(model, query, options = {}) {
   });
 }
 
-function sumTotal(total, order) {
-  return total + (order.priceTotal - order.delivery.price);
+function sumTotal(total, { priceTotal }) {
+  return total + priceTotal;
+}
+
+function charges(order) {
+  const revenue = order.priceTotal;
+  const deliveryCharge = order.delivery.method === 'self' ? 0 : order.delivery.price;
+  const taxable = order.delivery.method === 'self'
+    ? order.priceTotal
+    : order.priceTotal - deliveryCharge;
+  const serviceCharge = (taxable * order.servicePercentage) / 100 + deliveryCharge;
+
+  return { revenue, deliveryCharge, serviceCharge };
 }
 
 const orderActions = {
@@ -404,15 +415,14 @@ const orderActions = {
           );
           const orderCount = ordersByMerchant[merchant].length;
           const deliveryCount = ordersByMerchant[merchant].filter(
-            ({ delivery }) => delivery.method !== 'self',
+            ({ delivery }) => delivery.method === 'getanyfood',
           ).length;
           const merchantOrders = ordersByMerchant[merchant].map((order) => {
-            const deliveryCharge = order.delivery.method === 'self' ? 0 : order.delivery.price;
-            const itemValue = order.priceTotal - deliveryCharge;
-            const serviceCharge = (itemValue * order.servicePercentage) / 100;
+            const { revenue, deliveryCharge, serviceCharge } = charges(order);
             const { month, year } = DateTime.fromJSDate(order.createdAt);
 
             return {
+              revenue,
               deliveryCharge,
               serviceCharge,
               month,
@@ -427,11 +437,12 @@ const orderActions = {
           const results = Object.keys(merchantOrdersByPeriod).map(period => merchantOrdersByPeriod[period].reduce(
             (
               {
+                revenue: totalRevenue,
                 deliveryCharge: totalDeliveryCharge,
                 serviceCharge: totalServiceCharge,
               },
               {
-                deliveryCharge, serviceCharge, month, year,
+                revenue, deliveryCharge, serviceCharge, month, year,
               },
             ) => ({
               merchant: merchantDoc,
@@ -439,10 +450,12 @@ const orderActions = {
               year,
               deliveryCount,
               orderCount,
+              revenue: totalRevenue + revenue,
               deliveryCharge: totalDeliveryCharge + deliveryCharge,
               serviceCharge: totalServiceCharge + serviceCharge,
             }),
             {
+              revenue: 0,
               deliveryCharge: 0,
               serviceCharge: 0,
             },
@@ -809,8 +822,9 @@ const orderActions = {
 
       const refinedOrders = orders.map((order) => {
         const { month, year } = DateTime.fromJSDate(order.createdAt);
+        const { revenue: amount } = charges(order);
         return {
-          amount: order.priceTotal - order.delivery.price,
+          amount,
           month,
           year,
         };
@@ -843,8 +857,7 @@ const orderActions = {
       const orderCount = orders.length;
       const { salesSum: totalSales, revenueSum: totalRevenue } = orders
         .map((order) => {
-          const sales = order.priceTotal - order.delivery.price;
-          const revenue = (sales * order.servicePercentage) / 100;
+          const { revenue: sales, serviceCharge: revenue } = charges(order);
 
           return { sales, revenue };
         })
@@ -869,17 +882,13 @@ const orderActions = {
       const revenueStats = orders.map((order) => {
         const { month, year } = DateTime.fromJSDate(order.createdAt);
 
-        const orderValue = order.priceTotal - order.delivery.price;
-        const serviceCharge = (orderValue * order.servicePercentage) / 100;
-        const deliveryCharge = order.delivery.method === 'getanyfood' ? order.delivery.price : 0;
-
-        const revenue = serviceCharge + deliveryCharge;
+        const { serviceCharge: amount } = charges(order);
 
         return {
           month,
           year,
           period: `${year}${month}`,
-          amount: revenue,
+          amount,
         };
       });
 
