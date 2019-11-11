@@ -668,7 +668,16 @@ const orderActions = {
         orderUpdate['payment.refund'] = true;
         orderUpdate['payment.status'] = refund.status;
 
-        await req.scopedOrder.update(orderUpdate);
+        const { serviceCharge } = charges(req.scopedOrder);
+
+        await Promise.all([
+          req.scopedOrder.update(orderUpdate),
+          User.findByIdAndUpdate(merchantId, {
+            walletAmount: {
+              $inc: -1 * (req.scopedOrder.priceTotal - serviceCharge),
+            },
+          }),
+        ]);
       } else {
         await Promise.all([
           req.scopedOrder.update(orderUpdate),
