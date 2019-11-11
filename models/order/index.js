@@ -71,6 +71,7 @@ const orderSchema = new Schema(
     delivery: {
       method: String,
       price: Number,
+      charge: Number,
       location: {
         state: String,
         city: String,
