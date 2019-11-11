@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const passport = require('passport');
 const User = require('../repositories/users');
+const Product = require('../repositories/products');
 const Order = require('../repositories/orders');
 const Ticket = require('../repositories/tickets');
 const Vendor = require('../repositories/vendors');
@@ -24,6 +25,8 @@ router.get('/:id', User.showOne);
 router.patch('/:id', User.scopeRequest('customer', true), User.update);
 
 router.delete('/:id', User.delete);
+
+router.get('/:id/products', Product.showAllForCustomer);
 
 router.post('/:id/orders', Order.create);
 

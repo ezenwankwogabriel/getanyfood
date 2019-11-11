@@ -979,6 +979,65 @@ const productActions = {
     }
   },
 
+  async showAllForCustomer(req, res, next) {
+    const queryOptions = {
+      populate: [
+        {
+          path: 'merchant',
+          model: User,
+          select: '-password -deleted',
+        },
+        {
+          path: 'category',
+          model: ProductCategory,
+        },
+      ],
+    };
+    const {
+      amount,
+      category,
+      discounted,
+      endDate,
+      name,
+      startDate,
+      type,
+    } = req.query;
+    if (discounted) {
+      queryOptions.discount = { $gt: 0 };
+    }
+    if (type) {
+      queryOptions.type = type;
+    }
+    if (name) {
+      queryOptions.name = new RegExp(name, 'i');
+    }
+    if (amount) {
+      queryOptions.price = amount;
+    }
+    if (category) {
+      queryOptions.category = category;
+    }
+    if (startDate && endDate) {
+      queryOptions.createdAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
+    try {
+      const merchants = await User.find({
+        'location.state':
+          req.scopedUser.delivery.location.state
+          || req.scopedUser.location.state,
+      });
+      const merchantIds = merchants.map(({ _id: id }) => id);
+      queryOptions.merchant = { $in: merchantIds };
+      const products = await utils.PaginateRequest(req, queryOptions, Product);
+      res.success(products);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async delete(req, res, next) {
     try {
       await req.scopedProduct.remove();
