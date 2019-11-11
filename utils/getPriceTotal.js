@@ -1,18 +1,10 @@
 const Product = require('../models/product');
-const Setting = require('../models/setting');
 const User = require('../models/user');
 
 async function getPriceTotal(order) {
-  const [merchant, settings] = await Promise.all([
-    User.findById(order.merchant),
-    Setting.findOne(),
-  ]);
-  if (!settings) throw new Error('Getanyfood price not set');
-  let { deliveryCharge } = settings.stateSettings(
-    order.delivery.location.state,
-  );
+  const merchant = await User.findById(order.merchant);
 
-  if (merchant.delivery.method === 'self') deliveryCharge = merchant.delivery.price;
+  const deliveryPrice = merchant.delivery.price;
 
   const prices = await Promise.all(
     order.items.map(async (item) => {
@@ -45,7 +37,7 @@ async function getPriceTotal(order) {
       return product.price * item.count;
     }),
   );
-  const priceTotal = prices.reduce((total, price) => total + price, 0) + deliveryCharge;
+  const priceTotal = prices.reduce((total, price) => total + price, 0) + deliveryPrice;
 
   return priceTotal;
 }

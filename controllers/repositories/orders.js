@@ -32,7 +32,7 @@ function sumTotal(total, { priceTotal }) {
 
 function charges(order) {
   const revenue = order.priceTotal;
-  const deliveryCharge = order.delivery.method === 'self' ? 0 : order.delivery.price;
+  const deliveryCharge = order.delivery.method === 'self' ? 0 : order.delivery.charge;
   const taxable = order.delivery.method === 'self'
     ? order.priceTotal
     : order.priceTotal - deliveryCharge;
@@ -140,6 +140,7 @@ const orderActions = {
         ...merchant.delivery,
         ...customer.delivery,
         ...req.body.delivery,
+        price: merchant.delivery.price,
       };
 
       const sameState = merchant.location.state.toLowerCase()
@@ -152,9 +153,9 @@ const orderActions = {
         throw new Error('Location mismatch: this order cannot be delivered.');
       }
       const stateSettings = settings.stateSettings(delivery.location.state);
-      const price = merchant.delivery.method === 'self'
-        ? merchant.delivery.price
-        : stateSettings.deliveryCharge;
+      if (merchant.delivery.method === 'getanyfood') {
+        delivery.charge = stateSettings.deliveryCharge;
+      }
       const transaction = await paystack.transaction.initialize({
         reference: req.planner ? req.planner.reference : savedOrder.id,
         amount: req.planner ? req.planner.priceTotal * 100 : priceTotal * 100,
@@ -170,7 +171,6 @@ const orderActions = {
           priceTotal,
           delivery: {
             ...delivery,
-            price,
           },
           servicePercentage: stateSettings.servicePercentage,
           payment: {
@@ -190,7 +190,7 @@ const orderActions = {
           select: '-password -selected',
         });
       if (req.planner) {
-        req.planner.orders.price = price;
+        req.planner.orders.price = delivery.price;
         req.planner.priceTotal += priceTotal;
         req.planner.reference = `000${req.planner._id}${req.planner.orders.length}`;
         req.planner.payment.accessCode = transaction.data.access_code;
