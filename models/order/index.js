@@ -9,9 +9,17 @@ const orderSchema = new Schema(
   {
     reference: { type: String, default: generateOrderId, required: true },
     customer: { type: ObjectId, ref: 'User', required: true },
-    merchant: { type: ObjectId, ref: 'User', required: true },
+    merchant: {
+      type: ObjectId,
+      ref: 'User',
+      required() {
+        return !this.planner.id;
+      },
+    },
     planner: {
       id: { type: String },
+      status: { type: String, enum: ['pending', 'sent'] },
+      merchant: { type: String },
       deliveryDate: { type: Date },
       deliveryTime: { type: String },
     },

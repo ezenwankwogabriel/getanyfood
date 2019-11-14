@@ -104,6 +104,8 @@ const userActions = {
           'businessDays',
           'workingHours',
           'businessType',
+          'businessAddressLatitude',
+          'businessAddressLongitude',
         ].includes(key);
         const nameField = ['lastName'].includes(key);
         return validField && (nonEmptyField || nameField);

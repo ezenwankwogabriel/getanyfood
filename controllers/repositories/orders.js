@@ -98,8 +98,9 @@ const orderActions = {
           startDate: { $gte: startDate },
           endDate: { $lte: endDate },
         });
+        const [hour, min] = deliveryTime.split(':');
         const plannerOrder = {
-          deliveryDate,
+          deliveryDate: new Date(deliveryDate).setHours(hour || 0, min || 0),
           orderNumber: order._id,
           deliveryTime,
           merchant: order.merchant,
@@ -121,6 +122,7 @@ const orderActions = {
           deliveryDate,
           deliveryTime,
         };
+        order.merchant = null; // To be added when delivery date is reached
       }
       const [
         savedOrder,
@@ -196,21 +198,23 @@ const orderActions = {
         req.planner.payment.accessCode = transaction.data.access_code;
         await req.planner.save();
       } // save weekly planner details if exists;
-      SendNotification({
-        message: `An order has been placed by ${customer.fullName}`,
-        orderNumber: fullOrder._id,
-        notificationTo: merchant._id,
-        notificationFrom: customer._id,
-      });
-      const details = {
-        email: merchant.emailAddress,
-        subject: 'New Order',
-        content: `An order has with id ${fullOrder._id}, been placed by ${customer.fullName}`,
-        template: 'email',
-        link: `${path}?customerId=${fullOrder._id}`,
-        button: 'View Request',
-      };
-      Email(details).send();
+      if (!req.planner) {
+        SendNotification({
+          message: `An order has been placed by ${customer.fullName}`,
+          orderNumber: fullOrder._id,
+          notificationTo: merchant._id,
+          notificationFrom: customer._id,
+        });
+        const details = {
+          email: merchant.emailAddress,
+          subject: 'New Order',
+          content: `An order has with id ${fullOrder._id}, been placed by ${customer.fullName}`,
+          template: 'email',
+          link: `${path}?customerId=${fullOrder._id}`,
+          button: 'View Request',
+        };
+        Email(details).send();
+      }
       return res.success(req.planner ? req.planner : fullOrder);
     } catch (err) {
       return next(err);

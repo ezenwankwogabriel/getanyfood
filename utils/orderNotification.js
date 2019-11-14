@@ -1,12 +1,16 @@
 const ms = require('ms');
 const moment = require('moment');
 const orderModel = require('../models/order');
-const { SendNotification } = require('../controllers/repositories/notification');
+const {
+  SendNotification,
+} = require('../controllers/repositories/notification');
 
 async function getRequests(time, status, feedback) {
   const delayNo = status === 'pending' ? 0 : 1;
   const query = {
-    delayedOrder: delayNo, status, updatedAt: { $lt: moment().subtract(time, 'minutes') },
+    delayedOrder: delayNo,
+    status,
+    updatedAt: { $lt: moment().subtract(time, 'minutes') },
   };
   const order = await orderModel.find(query);
   for (let i = 0; i < order.length; i += 1) {
@@ -22,5 +26,8 @@ async function getRequests(time, status, feedback) {
   }
 }
 
-setInterval(() => getRequests(20, 'pending', 'has been pending'), '20mins');
-setInterval(() => getRequests(30, 'accepted', 'has not been completed'), ms('30mins'));
+setInterval(() => getRequests(20, 'pending', 'has been pending'), ms('20mins'));
+setInterval(
+  () => getRequests(30, 'accepted', 'has not been completed'),
+  ms('30mins'),
+);
