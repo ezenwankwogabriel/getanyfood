@@ -3,9 +3,16 @@ const axios = require('axios');
 async function sentToNester(order) {
   try {
     const {
-      items, customer, merchant, delivery: { location }, _id,
+      items,
+      customer,
+      merchant,
+      delivery: { location },
+      _id,
     } = order;
-    const { NESTER_SERVER: api, ECOMMERCE_TOKEN_NESTERPOD: token } = process.env;
+    const {
+      NESTER_SERVER: api,
+      ECOMMERCE_TOKEN_NESTERPOD: token,
+    } = process.env;
     const details = {
       website_type: 'Getany',
       order_id: _id,
@@ -13,13 +20,14 @@ async function sentToNester(order) {
       sender_email: merchant.emailAddress,
       sender_phone: merchant.phoneNumber,
       package_type: items[0] && items[0].product && items[0].product.type,
-      package_description: items[0] && items[0].product && items[0].product.description,
+      package_description:
+        items[0] && items[0].product && items[0].product.description,
       pickup_contact_name: merchant.businessName,
       pickup_phone: merchant.phoneNumber,
       pickup_email: merchant.emailAddress,
-      pickup_address: merchant.delivery && merchant.delivery.location.address,
-      pickup_address_longitude: merchant.delivery && merchant.delivery.location.lat,
-      pickup_address_latitude: merchant.delivery && merchant.delivery.location.lng,
+      pickup_address: merchant.businessAddress,
+      pickup_address_longitude: merchant.businessAddressLongitude,
+      pickup_address_latitude: merchant.businessAddressLatitude,
       recipient_contact_name: customer.fullName,
       recipient_phone: customer.phoneNumber,
       recipient_email: customer.emailAddress,
