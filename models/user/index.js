@@ -55,6 +55,8 @@ const userSchema = new Schema({
       return this.userType === 'merchant';
     },
   },
+  businessAddressLatitude: String,
+  businessAddressLongitude: String,
   businessCategory: {
     type: String,
     required() {
@@ -223,7 +225,10 @@ userSchema.statics.verifyAdminPassword = async function verifyAdminPassword(
   adminPassword,
 ) {
   try {
-    const adminUser = await this.findOne({ _id: adminId, userType: { $in: ['super_admin', 'merchant'] } });
+    const adminUser = await this.findOne({
+      _id: adminId,
+      userType: { $in: ['super_admin', 'merchant'] },
+    });
     const user = bcrypt.compareSync(adminPassword, adminUser.password);
     return user;
   } catch (ex) {
