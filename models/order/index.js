@@ -38,7 +38,6 @@ const orderSchema = new Schema(
         'pickup ongoing',
         'pickup completed',
         'delivery ongoing',
-        'delivery completed',
         'completed',
         'onging',
         'failed',
