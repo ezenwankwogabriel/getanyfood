@@ -674,16 +674,18 @@ const orderActions = {
 
         await req.scopedOrder.update(orderUpdate);
       } else {
-        const statePrices = await Setting.find({}, { availableStates: 1 });
-        statePrices.find(location => location.state === 'Lagos');
-        if (!statePrices) return res.badRequest('Delivery price not set: Super Admin');
+        const statePrices = await Setting.findOne({}, { availableStates: 1 });
+        const price = statePrices.availableStates.find(
+          location => location.state === 'Lagos',
+        );
+        if (!price) return res.badRequest('Delivery price not set: Super Admin');
         await Promise.all([
           req.scopedOrder.update(orderUpdate),
           status === 'accepted'
             && method === 'getanyfood'
             && sendToNester({
               ...req.scopedOrder,
-              cost: statePrices.deliveryCharge,
+              cost: price.deliveryCharge,
             }),
         ]);
       }
