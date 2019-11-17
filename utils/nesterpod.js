@@ -21,7 +21,7 @@ async function sentToNester(order, jobCost) {
       sender_phone: merchant.phoneNumber,
       package_type: items[0] && items[0].product && items[0].product.type,
       package_description:
-        items[0] && items[0].product && items[0].product.description,
+        items[0] && items[0].product && items[0].product.name,
       jobName: merchant.businessName,
       jobCost,
       pickup_contact_name: merchant.businessName,
