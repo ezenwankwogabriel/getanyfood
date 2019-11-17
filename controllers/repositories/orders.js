@@ -674,10 +674,8 @@ const orderActions = {
 
         await req.scopedOrder.update(orderUpdate);
       } else {
-        const statePrices = await Setting.findOne({}, { availableStates: 1 });
-        const price = statePrices.availableStates.find(
-          location => location.state === 'Lagos',
-        );
+        const statePrices = await Setting.findOne();
+        const price = statePrices.stateSettings('Lagos');
         if (!price) return res.badRequest('Delivery price not set: Super Admin');
         await Promise.all([
           req.scopedOrder.update(orderUpdate),
