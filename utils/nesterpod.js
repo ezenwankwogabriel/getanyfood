@@ -7,7 +7,8 @@ async function sentToNester(order) {
       customer,
       merchant,
       delivery: { location },
-      _id,
+      reference,
+      cost: jobCost,
     } = order;
     const {
       NESTER_SERVER: api,
@@ -15,13 +16,15 @@ async function sentToNester(order) {
     } = process.env;
     const details = {
       website_type: 'Getany',
-      order_id: _id,
+      order_id: reference,
       sender_name: merchant.fullName,
       sender_email: merchant.emailAddress,
       sender_phone: merchant.phoneNumber,
       package_type: items[0] && items[0].product && items[0].product.type,
       package_description:
         items[0] && items[0].product && items[0].product.description,
+      jobName: merchant.businessName,
+      jobCost,
       pickup_contact_name: merchant.businessName,
       pickup_phone: merchant.phoneNumber,
       pickup_email: merchant.emailAddress,

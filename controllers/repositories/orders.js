@@ -628,7 +628,7 @@ const orderActions = {
       const { id } = req.params;
       const { status } = req.body;
       const order = await Order.findById(id);
-      if (order.status === 'delivery completed') return res.unAuthorized('Job has already been completed');
+      if (order.status === 'completed') return res.unAuthorized('Job has already been completed');
       order.status = status;
       await order.save();
       return res.success('Updated successfully');
@@ -674,11 +674,17 @@ const orderActions = {
 
         await req.scopedOrder.update(orderUpdate);
       } else {
+        const statePrices = await Setting.find({}, { availableStates: 1 });
+        statePrices.find(location => location.state === 'Lagos');
+        if (!statePrices) return res.badRequest('Delivery price not set: Super Admin');
         await Promise.all([
           req.scopedOrder.update(orderUpdate),
           status === 'accepted'
             && method === 'getanyfood'
-            && sendToNester(req.scopedOrder),
+            && sendToNester({
+              ...req.scopedOrder,
+              cost: statePrices.deliveryCharge,
+            }),
         ]);
       }
 
