@@ -625,9 +625,10 @@ const orderActions = {
 
   async updateFromNester(req, res, next) {
     try {
-      const { id } = req.params;
+      const { id: reference } = req.params;
       const { status } = req.body;
-      const order = await Order.findById(id);
+      const order = await Order.findByReference(reference);
+      if (!order) return res.badRequest('Request with order number not found');
       if (order.status === 'completed') return res.unAuthorized('Job has already been completed');
       order.status = status;
       await order.save();
@@ -681,10 +682,7 @@ const orderActions = {
           req.scopedOrder.update(orderUpdate),
           status === 'accepted'
             && method === 'getanyfood'
-            && sendToNester({
-              ...req.scopedOrder,
-              cost: price.deliveryCharge,
-            }),
+            && sendToNester(req.scopedOrder, price.deliveryCharge),
         ]);
       }
 
