@@ -99,6 +99,10 @@ const orderSchema = new Schema(
   { timestamps: true },
 );
 
+orderSchema.statics.findByReference = function findByReference(reference) {
+  return this.findOne({ reference });
+};
+
 orderSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Order', orderSchema);

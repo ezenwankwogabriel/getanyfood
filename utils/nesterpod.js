@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-async function sentToNester(order) {
+async function sentToNester(order, jobCost) {
   try {
     const {
       items,
@@ -8,7 +8,6 @@ async function sentToNester(order) {
       merchant,
       delivery: { location },
       reference,
-      cost: jobCost,
     } = order;
     const {
       NESTER_SERVER: api,
