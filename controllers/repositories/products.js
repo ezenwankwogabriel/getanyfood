@@ -921,7 +921,6 @@ const productActions = {
             queryOptions.createdAt.$lte = dateTime.endOf('month').toJSDate();
           }
           const orders = await Order.find(queryOptions);
-          console.log(queryOptions, orders.length);
 
           const totalAvailable = product.unitsAvailablePerDay;
 
