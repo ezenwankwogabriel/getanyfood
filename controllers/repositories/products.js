@@ -896,6 +896,7 @@ const productActions = {
   },
 
   async showStock(req, res, next) {
+    const { month, year } = req.query;
     try {
       const products = await Product.find({
         merchant: req.params.id,
@@ -903,17 +904,24 @@ const productActions = {
 
       const stats = await Promise.all(
         products.map(async (product) => {
-          const orders = await Order.find({
+          const queryOptions = {
             'items.product': product.id,
             createdAt: {
-              $gte: DateTime.local()
+              $gte: DateTime.utc()
                 .startOf('day')
                 .toJSDate(),
-              $lte: DateTime.local()
+              $lte: DateTime.utc()
                 .endOf('day')
                 .toJSDate(),
             },
-          });
+          };
+          if (month && year) {
+            const dateTime = DateTime.utc(Number(year), Number(month));
+            queryOptions.createdAt.$gte = dateTime.startOf('month').toJSDate();
+            queryOptions.createdAt.$lte = dateTime.endOf('month').toJSDate();
+          }
+          const orders = await Order.find(queryOptions);
+          console.log(queryOptions, orders.length);
 
           const totalAvailable = product.unitsAvailablePerDay;
 
