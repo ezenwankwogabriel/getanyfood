@@ -9,9 +9,9 @@ async function getPriceTotal(order) {
   const prices = await Promise.all(
     order.items.map(async (item) => {
       const product = await Product.findById(item.product);
+      const discount = product.discount || 0;
 
       if (product.type === 'combo') {
-        const discount = product.discount || 0;
         const itemPrices = item.comboProducts.map((comboProduct) => {
           const group = product.comboProducts.id(comboProduct.group);
           const choice = group.options.id(comboProduct.choice);
@@ -29,12 +29,14 @@ async function getPriceTotal(order) {
         return comboPrice * item.count;
       }
 
+      let productPrice = product.price;
+
       if (item.subProduct) {
         const subProduct = product.subProducts.id(item.subProduct);
-        return (product.price + subProduct.priceDifference) * item.count;
+        productPrice += subProduct.priceDifference;
       }
 
-      return product.price * item.count;
+      return productPrice * ((100 - discount) / 100) * item.count;
     }),
   );
   const priceTotal = prices.reduce((total, price) => total + price, 0) + deliveryPrice;
