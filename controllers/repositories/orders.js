@@ -250,6 +250,7 @@ const orderActions = {
   async showAllByMerchant(req, res, next) {
     const queryOptions = {
       merchant: req.params.id,
+      'payment.status': 'success',
       populate: [
         {
           path: 'customer',
@@ -483,16 +484,13 @@ const orderActions = {
             merchant,
             'businessName emailAddress phoneNumber',
           );
-          const orderCount = ordersByMerchant[merchant].length;
-          const deliveryCount = ordersByMerchant[merchant].filter(
-            ({ delivery }) => delivery.method === 'getanyfood',
-          ).length;
           const merchantOrders = ordersByMerchant[merchant].map((order) => {
             const { revenue, deliveryCharge, serviceCharge } = charges(order);
             const { month, year } = DateTime.fromJSDate(order.createdAt);
 
             return {
               revenue,
+              deliveryMethod: order.delivery.method,
               deliveryCharge,
               serviceCharge,
               month,
@@ -518,8 +516,10 @@ const orderActions = {
               merchant: merchantDoc,
               month,
               year,
-              deliveryCount,
-              orderCount,
+              deliveryCount: merchantOrdersByPeriod[period].filter(
+                ({ deliveryMethod }) => deliveryMethod === 'getanyfood',
+              ).length,
+              orderCount: merchantOrdersByPeriod[period].length,
               revenue: totalRevenue + revenue,
               deliveryCharge: totalDeliveryCharge + deliveryCharge,
               serviceCharge: totalServiceCharge + serviceCharge,
