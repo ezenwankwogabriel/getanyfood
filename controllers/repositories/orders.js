@@ -659,7 +659,12 @@ const orderActions = {
       merchant: {
         delivery: { method },
       },
-      customer: { emailAddress: customerEmailAddress, fullName: customerName },
+      priceTotal,
+      customer: {
+        _id: customerId,
+        emailAddress: customerEmailAddress,
+        fullName: customerName,
+      },
     } = req.scopedOrder;
     try {
       if (['rejected', 'failed'].includes(status)) {
@@ -677,9 +682,14 @@ const orderActions = {
 
         await Promise.all([
           req.scopedOrder.update(orderUpdate),
+          PaymentHistory.findOneAndRemove({
+            merchant: merchantId,
+            customer: customerId,
+            amount: priceTotal,
+          }),
           User.findByIdAndUpdate(merchantId, {
             $inc: {
-              walletAmount: -1 * (req.scopedOrder.priceTotal - serviceCharge),
+              walletAmount: -1 * (priceTotal - serviceCharge),
             },
           }),
         ]);
