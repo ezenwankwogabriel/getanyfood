@@ -155,9 +155,9 @@ const orderActions = {
         throw new Error('Location mismatch: this order cannot be delivered.');
       }
       const stateSettings = settings.stateSettings(delivery.location.state);
-      if (merchant.delivery.method === 'getanyfood') {
-        delivery.charge = stateSettings.deliveryCharge;
-      }
+      delivery.charge = merchant.delivery.method === 'getanyfood'
+        ? stateSettings.deliveryCharge
+        : 0;
       const transaction = await paystack.transaction.initialize({
         reference: req.planner ? req.planner.reference : savedOrder.id,
         amount: req.planner ? req.planner.priceTotal * 100 : priceTotal * 100,
