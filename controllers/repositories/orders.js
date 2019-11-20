@@ -678,8 +678,8 @@ const orderActions = {
         await Promise.all([
           req.scopedOrder.update(orderUpdate),
           User.findByIdAndUpdate(merchantId, {
-            walletAmount: {
-              $inc: -1 * (req.scopedOrder.priceTotal - serviceCharge),
+            $inc: {
+              walletAmount: -1 * (req.scopedOrder.priceTotal - serviceCharge),
             },
           }),
         ]);
