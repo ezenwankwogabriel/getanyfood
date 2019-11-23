@@ -91,6 +91,7 @@ const orderActions = {
         customer: req.user.id,
         reference: generateOrderId(),
       });
+      const merchantId = order.merchant;
       if (endDate && startDate) {
         // save as planner if not exist
         let plannerDoc = await WeeklyPlanner.findOne({
@@ -132,7 +133,7 @@ const orderActions = {
         settings,
       ] = await Promise.all([
         order.save(),
-        utils.getPriceTotal(order),
+        utils.getPriceTotal(merchantId, order),
         User.findById(req.body.merchant),
         User.findById(req.user.id),
         Setting.findOne(),

@@ -1,8 +1,8 @@
 const Product = require('../models/product');
 const User = require('../models/user');
 
-async function getPriceTotal(order) {
-  const merchant = await User.findById(order.merchant);
+async function getPriceTotal(merchantId, order) {
+  const merchant = await User.findById(merchantId);
 
   const deliveryPrice = merchant.delivery.price;
 
