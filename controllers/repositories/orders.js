@@ -155,6 +155,13 @@ const orderActions = {
       if (!locationMatch) {
         throw new Error('Location mismatch: this order cannot be delivered.');
       }
+
+      if (req.planner) {
+        req.planner.orders.price = delivery.price;
+        req.planner.priceTotal += priceTotal;
+        req.planner.reference = `000${req.planner._id}${req.planner.orders.length}`;
+      } // save weekly planner details if exists;
+
       const stateSettings = settings.stateSettings(delivery.location.state);
       delivery.charge = merchant.delivery.method === 'getanyfood'
         ? stateSettings.deliveryCharge
@@ -166,6 +173,11 @@ const orderActions = {
       });
       if (transaction.status !== true) {
         throw new Error(transaction.message);
+      }
+
+      if (req.planner) {
+        req.planner.payment.accessCode = transaction.data.access_code;
+        await req.planner.save();
       }
 
       const fullOrder = await Order.findByIdAndUpdate(
@@ -192,13 +204,7 @@ const orderActions = {
           model: User,
           select: '-password -selected',
         });
-      if (req.planner) {
-        req.planner.orders.price = delivery.price;
-        req.planner.priceTotal += priceTotal;
-        req.planner.reference = `000${req.planner._id}${req.planner.orders.length}`;
-        req.planner.payment.accessCode = transaction.data.access_code;
-        await req.planner.save();
-      } // save weekly planner details if exists;
+
       if (!req.planner) {
         SendNotification({
           message: `An order has been placed by ${customer.fullName}`,
