@@ -553,6 +553,7 @@ const orderActions = {
     const queryOptions = {
       status: { $nin: ['rejected', 'failed'] },
       'delivery.method': 'getanyfood',
+      merchant: { $exists: true, $ne: null },
       populate: [
         {
           path: 'customer',
