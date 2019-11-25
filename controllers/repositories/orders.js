@@ -480,6 +480,7 @@ const orderActions = {
     try {
       const orders = await Order.find({
         'payment.status': 'success',
+        merchant: { $exists: true, $ne: null },
       });
 
       const ordersByMerchant = groupBy(orders, 'merchant');
