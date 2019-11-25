@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 const crypto = require('crypto');
+const uuid = require('uuid/v1');
 const paystack = require('paystack-api')(process.env.PAYSTACK_SECRET_KEY);
 const { groupBy, sortBy } = require('lodash');
 const { DateTime } = require('luxon');
@@ -92,6 +93,21 @@ const orderActions = {
         reference: generateOrderId(),
       });
       const merchantId = order.merchant;
+
+      const [totalAmount, merchant, settings] = await Promise.all([
+        utils.getPriceTotal(merchantId, order),
+        User.findById(merchantId),
+        Setting.findOne(),
+      ]);
+
+      const stateSettings = settings.stateSettings(merchant.location.state);
+      const deliveryCharge = merchant.delivery.method === 'self' ? 0 : merchant.delivery.charge;
+      const taxable = merchant.delivery.method === 'self'
+        ? totalAmount
+        : totalAmount - deliveryCharge;
+      const serviceCharge = (taxable * stateSettings.servicePercentage) / 100 + deliveryCharge;
+      const priceTotal = totalAmount - serviceCharge;
+
       if (endDate && startDate) {
         // save as planner if not exist
         let plannerDoc = await WeeklyPlanner.findOne({
@@ -105,19 +121,23 @@ const orderActions = {
           orderNumber: order._id,
           deliveryTime,
           merchant: order.merchant,
+          price: priceTotal,
         };
         if (plannerDoc) {
           plannerDoc.orders.push(plannerOrder);
+          plannerDoc.priceTotal += priceTotal;
           plannerDoc.payment.status = 'pending';
         } else {
           plannerDoc = new WeeklyPlanner({
             startDate,
             endDate,
+            priceTotal,
             customer: req.user.id,
             orders: [plannerOrder],
           });
         }
         req.planner = plannerDoc;
+        req.planner.reference = uuid();
         order.planner = {
           id: plannerDoc._id,
           deliveryDate,
@@ -125,25 +145,15 @@ const orderActions = {
         };
         order.merchant = null; // To be added when delivery date is reached
       }
-      const [
-        savedOrder,
-        priceTotal,
-        merchant,
-        customer,
-        settings,
-      ] = await Promise.all([
+      const [savedOrder, customer] = await Promise.all([
         order.save(),
-        utils.getPriceTotal(merchantId, order),
-        User.findById(req.body.merchant),
         User.findById(req.user.id),
-        Setting.findOne(),
       ]);
 
       const delivery = {
         ...merchant.delivery,
         ...customer.delivery,
         ...req.body.delivery,
-        price: merchant.delivery.price,
       };
 
       const sameState = merchant.location.state.toLowerCase()
@@ -156,13 +166,6 @@ const orderActions = {
         throw new Error('Location mismatch: this order cannot be delivered.');
       }
 
-      if (req.planner) {
-        req.planner.orders.price = delivery.price;
-        req.planner.priceTotal += priceTotal;
-        req.planner.reference = `000${req.planner._id}${req.planner.orders.length}`;
-      } // save weekly planner details if exists;
-
-      const stateSettings = settings.stateSettings(delivery.location.state);
       delivery.charge = merchant.delivery.method === 'getanyfood'
         ? stateSettings.deliveryCharge
         : 0;
@@ -225,6 +228,41 @@ const orderActions = {
       return res.success(req.planner ? req.planner : fullOrder);
     } catch (err) {
       return next(err);
+    }
+  },
+
+  async removeOrderFromPlanner(req, res, next) {
+    try {
+      const { orderId, plannerId } = req.params;
+      const { emailAddress } = req.user;
+      const planner = await WeeklyPlanner.findById({ _id: plannerId });
+      if (!planner) return res.badRequest('Planner not found or invalid id provided');
+      const order = planner.orders.find(
+        singleOrder => singleOrder._id.toString() === orderId,
+      );
+      if (order && order.paid) return res.unAuthorized('This order has already been paid for');
+      const priceTotal = planner.priceTotal - (order.price || 0);
+      const reference = uuid();
+      const transaction = await paystack.transaction.initialize({
+        reference,
+        amount: priceTotal,
+        email: emailAddress,
+      });
+      if (transaction.status !== true) {
+        throw new Error(transaction.message);
+      }
+      const accessCode = transaction.data.access_code;
+      await WeeklyPlanner.update(
+        { _id: plannerId },
+        {
+          $pull: { orders: { _id: orderId } },
+          $set: { priceTotal, accessCode, reference },
+        },
+      );
+
+      return res.success('Successful');
+    } catch (ex) {
+      return next(ex);
     }
   },
 
@@ -769,7 +807,17 @@ const orderActions = {
             const planner = await WeeklyPlanner.findOne({
               reference: data.reference,
             });
-            const orderNumbers = planner.orders.map(order => order.orderNumber);
+            const orderNumbers = planner.orders.reduce(
+              (previousValue, currentValue) => {
+                if (!currentValue.paid) {
+                  // eslint-disable-next-line no-param-reassign
+                  currentValue.paid = true;
+                  previousValue.push(currentValue.orderNumber);
+                }
+                return previousValue;
+              },
+              [],
+            );
             planner.priceTotal = 0;
             planner.payment.status = data.status;
             const userQuery = planner.orders.map(order => ({

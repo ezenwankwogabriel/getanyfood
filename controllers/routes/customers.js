@@ -18,6 +18,8 @@ router.get('/', User.showAllCustomers);
 
 router.get('/weeklyplanner', Order.plannerList);
 
+router.patch('/removeOrder/:plannerId/:orderId', Order.removeOrderFromPlanner);
+
 router.use('/:id', User.scopeRequest('customer'));
 
 router.get('/:id', User.showOne);
