@@ -445,7 +445,7 @@ const orderActions = {
     try {
       const order = await Order.findByIdAndUpdate(
         req.scopedOrder.id,
-        { rating, comment },
+        { rating, comment, ratedAt: new Date() },
         { new: true },
       );
       return res.success(order);
@@ -468,14 +468,17 @@ const orderActions = {
     };
     try {
       const orders = await utils.PaginateRequest(req, queryOptions, Order);
-      const reviews = orders.docs.map(({
-        rating, comment, customer, _id,
-      }) => ({
-        _id,
-        rating,
-        comment,
-        customer,
-      }));
+      const reviews = orders.docs.map(
+        ({
+          rating, comment, ratedAt, customer, _id,
+        }) => ({
+          _id,
+          rating,
+          ratedAt,
+          comment,
+          customer,
+        }),
+      );
       orders.docs = reviews;
 
       res.success(orders);

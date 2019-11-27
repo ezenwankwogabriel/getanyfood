@@ -94,6 +94,7 @@ const orderSchema = new Schema(
     },
     rating: { type: Number, min: 1, max: 5 },
     comment: String,
+    ratedAt: { type: Date },
     completedAt: { type: Date },
   },
   { timestamps: true },
