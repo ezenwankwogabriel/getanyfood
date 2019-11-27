@@ -1,0 +1,20 @@
+stages:
+  - deploy
+
+deploy_staging:
+  image: alpine
+  stage: deploy
+  environment:
+    name: staging
+    url: http://api.getanyfood.com
+  script:
+    - apk add --no-cache rsync openssh
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" >> ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - git remote add server "$SERVER_USER@$SERVER_HOST:$SERVER_PATH/"
+    - git push -f server HEAD:$DEPLOYMENT_BRANCH
+  only:
+    - development
+
