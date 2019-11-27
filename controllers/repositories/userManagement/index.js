@@ -10,7 +10,10 @@ module.exports = class CreateSubUser {
     const pass = user.adminId || user._id;
     const emailExists = await UserModel.findByEmail(body.emailAddress);
     if (emailExists) return res.badRequest('Email address exists already');
-    const verifiedAdminPass = await UserModel.verifyAdminPassword(pass, body.adminPassword);
+    const verifiedAdminPass = await UserModel.verifyAdminPassword(
+      pass,
+      body.adminPassword,
+    );
     if (!verifiedAdminPass) return res.unAuthorized('Admin Password Incorrect');
     const newUser = new UserModel({
       firstName: body.firstName,
@@ -34,14 +37,15 @@ module.exports = class CreateSubUser {
 
   static async updateProfile(req, res) {
     // accessed by merchant or super admin with priviledge;
-    const {
-      adminPassword, newPassword, _id: userId,
-    } = req.body;
+    const { adminPassword, newPassword, _id: userId } = req.body;
     const { _id: adminId } = req.user;
 
     if (!userId) return res.badRequest('User id not provided');
 
-    const adminPassVerified = await UserModel.verifyAdminPassword(adminId, adminPassword);
+    const adminPassVerified = await UserModel.verifyAdminPassword(
+      adminId,
+      adminPassword,
+    );
     if (!adminPassVerified) return res.badRequest('Admin password incorrect');
 
     const userUpdate = { ...req.body };
@@ -57,10 +61,14 @@ module.exports = class CreateSubUser {
   static async actionOnUser(req, res) {
     const { id, action } = req.params;
 
-    if (action !== 'activate' && action !== 'deactivate') { return res.badRequest('Status not provided or is of invalid valid'); }
+    if (action !== 'activate' && action !== 'deactivate') {
+      return res.badRequest('Status not provided or is of invalid valid');
+    }
 
     const userObject = await UserModel.findById(id).exec();
-    if (!userObject) { return res.badRequest('Invalid id provided'); }
+    if (!userObject) {
+      return res.badRequest('Invalid id provided');
+    }
     userObject.status = action === 'activate' ? 1 : 0;
     await userObject.save();
     return res.success('Updated Successfully');
@@ -122,6 +130,13 @@ module.exports = class CreateSubUser {
     }
 
     const users = await utils.PaginateRequest(req, query, UserModel);
+    users.docs = await Promise.all(
+      users.docs.map(async (user) => {
+        const userObject = user.toObject();
+        userObject.orderCount = await user.getOrderCount();
+        return userObject;
+      }),
+    );
     return res.success(users);
   }
 };
