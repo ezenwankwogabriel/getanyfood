@@ -10,85 +10,78 @@ const Order = require('../../models/order');
 
 const { Schema } = mongoose;
 
-const userSchema = new Schema({
-  firstName: {
-    type: String,
-    minlength: 3,
-    required() {
-      return this.userType !== 'super_admin';
-    },
-  },
-  lastName: {
-    type: String,
-    minlength: 2,
-    required() {
-      return this.userType !== 'super_admin';
-    },
-  },
-  businessName: {
-    type: String,
-    minlength: 3,
-    required() {
-      return this.userType === 'merchant';
-    },
-  },
-  emailAddress: {
-    type: String,
-    unique: true,
-    dropDups: true,
-    lowercase: true,
-    trim: true,
-    required: true,
-  },
-  phoneNumber: {
-    type: String,
-    minlength: 11,
-    maxlength: 11,
-    required() {
-      return this.userType !== 'super_admin';
-    },
-  },
-  businessAddress: {
-    type: String,
-    minlength: 3,
-    required() {
-      return this.userType === 'merchant';
-    },
-  },
-  businessAddressLatitude: String,
-  businessAddressLongitude: String,
-  businessCategory: {
-    type: String,
-    required() {
-      return this.userType === 'merchant';
-    },
-  },
-  businessType: {
-    type: String,
-    enum: ['Restaurant', 'Supermarket', 'Mini Mart', 'Frozen Foods', 'Drinks'],
-  },
-  businessDescription: String,
-  businessDays: [
-    {
+const userSchema = new Schema(
+  {
+    firstName: {
       type: String,
-      enum: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
+      minlength: 3,
+      required() {
+        return this.userType !== 'super_admin';
+      },
+    },
+    lastName: {
+      type: String,
+      minlength: 2,
+      required() {
+        return this.userType !== 'super_admin';
+      },
+    },
+    businessName: {
+      type: String,
+      minlength: 3,
       required() {
         return this.userType === 'merchant';
       },
     },
-  ],
-  workingHours: {
-    openTime: { type: String },
-    closeTime: { type: String },
-  },
-  location: {
-    state: String,
-    city: String,
-    address: String,
-    lat: Number,
-    lng: Number,
-  },
-  delivery: {
+    emailAddress: {
+      type: String,
+      unique: true,
+      dropDups: true,
+      lowercase: true,
+      trim: true,
+      required: true,
+    },
+    phoneNumber: {
+      type: String,
+      minlength: 11,
+      maxlength: 11,
+      required() {
+        return this.userType !== 'super_admin';
+      },
+    },
+    businessAddress: {
+      type: String,
+      minlength: 3,
+      required() {
+        return this.userType === 'merchant';
+      },
+    },
+    businessAddressLatitude: String,
+    businessAddressLongitude: String,
+    businessCategory: {
+      type: String,
+      required() {
+        return this.userType === 'merchant';
+      },
+    },
+    businessType: {
+      type: String,
+      enum: ['Restaurant', 'Supermarket', 'Mini Mart', 'Frozen Foods', 'Drinks'],
+    },
+    businessDescription: String,
+    businessDays: [
+      {
+        type: String,
+        enum: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
+        required() {
+          return this.userType === 'merchant';
+        },
+      },
+    ],
+    workingHours: {
+      openTime: { type: String },
+      closeTime: { type: String },
+    },
     location: {
       state: String,
       city: String,
@@ -96,96 +89,121 @@ const userSchema = new Schema({
       lat: Number,
       lng: Number,
     },
-    instructions: String,
-    method: {
+    delivery: {
+      location: {
+        state: String,
+        city: String,
+        address: String,
+        lat: Number,
+        lng: Number,
+      },
+      instructions: String,
+      method: {
+        type: String,
+        lowercase: true,
+        enum: ['self', 'getanyfood'],
+        default: 'getanyfood',
+      },
+      price: {
+        type: Number,
+        required() {
+          return this.delivery.method === 'self';
+        },
+      },
+      time: {
+        type: Number,
+        required() {
+          return this.delivery.method === 'self';
+        },
+      },
+    },
+    walletAmount: { type: Number, default: 0 },
+    password: { type: String, set: encryptPassword, required: true },
+    userType: {
       type: String,
       lowercase: true,
-      enum: ['self', 'getanyfood'],
-      default: 'getanyfood',
+      enum: ['super_admin', 'merchant', 'customer', 'sub_admin', 'sub_merchant'],
     },
-    price: {
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    permission: {
+      type: Object,
+      contentManagement: Boolean,
+      userManagement: Boolean,
+      support: Boolean,
+      payment: Boolean,
+      report: Boolean,
+      profile: Boolean,
+      orders: Boolean,
+      manageSignups: Boolean,
+      paymentRequest: Boolean,
+      auditTrail: Boolean,
+      settings: Boolean,
+    },
+    adminId: { type: Schema.Types.ObjectId, ref: 'User' },
+    token: String,
+    resetPasswordExpires: String,
+    confirmation_token: String,
+    tokenExpires: Number,
+    profilePhoto: {
+      type: String,
+    },
+    profileThumbnail: String,
+    created_time: {
+      type: Date,
+      default: Date.now,
+    },
+    updated_time: {
+      type: Date,
+    },
+    /* 1:active, 0: suspended */
+    status: {
       type: Number,
+      default: 1,
+    },
+    /* 1: deleted, 0: active */
+    deleted: {
+      type: Number,
+      default: 0,
+    },
+    verified: {
+      type: Boolean,
       required() {
-        return this.delivery.method === 'self';
+        return this.userType === 'merchant';
+      },
+      default() {
+        return this.userType === 'super_admin';
       },
     },
-    time: {
-      type: Number,
-      required() {
-        return this.delivery.method === 'self';
-      },
+    bankDetails: {
+      bankName: { type: String, trim: true },
+      accountNumber: { type: String, minlength: 10, maxlength: 10 },
     },
   },
-  walletAmount: { type: Number, default: 0 },
-  orderCount: { type: Number, default: 0 },
-  password: { type: String, set: encryptPassword, required: true },
-  userType: {
-    type: String,
-    lowercase: true,
-    enum: ['super_admin', 'merchant', 'customer', 'sub_admin', 'sub_merchant'],
-  },
-  isAdmin: {
-    type: Boolean,
-    default: false,
-  },
-  permission: {
-    type: Object,
-    contentManagement: Boolean,
-    userManagement: Boolean,
-    support: Boolean,
-    payment: Boolean,
-    report: Boolean,
-    profile: Boolean,
-    orders: Boolean,
-    manageSignups: Boolean,
-    paymentRequest: Boolean,
-    auditTrail: Boolean,
-    settings: Boolean,
-  },
-  adminId: { type: Schema.Types.ObjectId, ref: 'User' },
-  token: String,
-  resetPasswordExpires: String,
-  confirmation_token: String,
-  tokenExpires: Number,
-  profilePhoto: {
-    type: String,
-  },
-  profileThumbnail: String,
-  created_time: {
-    type: Date,
-    default: Date.now,
-  },
-  updated_time: {
-    type: Date,
-  },
-  /* 1:active, 0: suspended */
-  status: {
-    type: Number,
-    default: 1,
-  },
-  /* 1: deleted, 0: active */
-  deleted: {
-    type: Number,
-    default: 0,
-  },
-  verified: {
-    type: Boolean,
-    required() {
-      return this.userType === 'merchant';
-    },
-    default() {
-      return this.userType === 'super_admin';
-    },
-  },
-  bankDetails: {
-    bankName: { type: String, trim: true },
-    accountNumber: { type: String, minlength: 10, maxlength: 10 },
-  },
-});
+  { toJSON: { getters: true, versionKey: false }, toObject: { getters: true } },
+);
 
 userSchema.virtual('fullName').get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
+
+userSchema.methods.getOrderCount = async function getOrderCount() {
+  const queryOptions = { 'payment.status': 'success' };
+  switch (this.userType) {
+    case 'merchant':
+      queryOptions.merchant = this.id;
+      break;
+    case 'customer':
+      queryOptions.customer = this.id;
+      break;
+    default:
+  }
+  const orderCount = await Order.countDocuments(queryOptions);
+  return orderCount;
+};
+
 userSchema.methods.getMerchantRating = async function getMerchantRating() {
   const orders = await Order.find({
     merchant: this.id,
