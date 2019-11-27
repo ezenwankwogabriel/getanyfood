@@ -188,9 +188,9 @@ userSchema.virtual('fullName').get(function () {
 });
 userSchema.methods.getMerchantRating = async function getMerchantRating() {
   const orders = await Order.find({
-    // eslint-disable-next-line no-underscore-dangle
-    merchant: this._id,
+    merchant: this.id,
     status: 'completed',
+    rating: { $exists: true },
   });
 
   if (!orders.length) {
