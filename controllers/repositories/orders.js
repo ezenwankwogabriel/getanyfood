@@ -16,7 +16,12 @@ const PaymentHistory = require('../../models/payment/paymentHistory');
 const {
   SendNotification,
 } = require('../../controllers/repositories/notification');
-const { Email, generateOrderId, sendToNester } = require('../../utils');
+const {
+  Email,
+  generateOrderId,
+  sendToNester,
+  charges,
+} = require('../../utils');
 
 function search(model, query, options = {}) {
   return new Promise((resolve, reject) => {
@@ -29,17 +34,6 @@ function search(model, query, options = {}) {
 
 function sumTotal(total, { priceTotal }) {
   return total + priceTotal;
-}
-
-function charges(order) {
-  const revenue = order.priceTotal;
-  const deliveryCharge = order.delivery.method === 'self' ? 0 : order.delivery.charge;
-  const taxable = order.delivery.method === 'self'
-    ? order.priceTotal
-    : order.priceTotal - deliveryCharge;
-  const serviceCharge = (taxable * order.servicePercentage) / 100 + deliveryCharge;
-
-  return { revenue, deliveryCharge, serviceCharge };
 }
 
 const orderActions = {
@@ -94,19 +88,13 @@ const orderActions = {
       });
       const merchantId = order.merchant;
 
-      const [totalAmount, merchant, settings] = await Promise.all([
+      const [priceTotal, merchant, settings] = await Promise.all([
         utils.getPriceTotal(merchantId, order),
         User.findById(merchantId),
         Setting.findOne(),
       ]);
 
       const stateSettings = settings.stateSettings(merchant.location.state);
-      const deliveryCharge = merchant.delivery.method === 'self' ? 0 : merchant.delivery.charge;
-      const taxable = merchant.delivery.method === 'self'
-        ? totalAmount
-        : totalAmount - deliveryCharge;
-      const serviceCharge = (taxable * stateSettings.servicePercentage) / 100 + deliveryCharge;
-      const priceTotal = totalAmount - serviceCharge;
 
       if (endDate && startDate) {
         // save as planner if not exist
@@ -154,6 +142,7 @@ const orderActions = {
         ...merchant.delivery,
         ...customer.delivery,
         ...req.body.delivery,
+        price: merchant.delivery.price,
       };
 
       const sameState = merchant.location.state.toLowerCase()
@@ -209,6 +198,12 @@ const orderActions = {
         });
 
       if (!req.planner) {
+        const { serviceCharge } = charges(order);
+        await User.findByIdAndUpdate(merchantId, {
+          $inc: {
+            walletAmount: priceTotal - serviceCharge,
+          },
+        });
         SendNotification({
           message: `An order has been placed by ${customer.fullName}`,
           orderNumber: fullOrder._id,
@@ -276,7 +271,7 @@ const orderActions = {
         },
         {
           path: 'orders.orderNumber',
-          model: Order,
+          populate: [{ path: 'items.product' }],
         },
       ],
     };

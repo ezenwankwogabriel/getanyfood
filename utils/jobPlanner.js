@@ -1,10 +1,11 @@
 /* eslint-disable no-underscore-dangle */
 const scheduler = require('node-schedule');
 const Order = require('../models/order');
+const User = require('../models/user');
 const {
   SendNotification,
 } = require('../controllers/repositories/notification');
-const { Email } = require('../utils');
+const { Email, charges } = require('../utils');
 
 async function checkHourlyDeliveries() {
   const startTime = new Date(new Date().setHours(0, 0, 0));
@@ -29,7 +30,13 @@ async function checkHourlyDeliveries() {
       merchant,
     };
     try {
+      const { serviceCharge } = charges(order);
       await Order.findByIdAndUpdate(orderId, update);
+      await User.findByIdAndUpdate(merchant, {
+        $inc: {
+          walletAmount: order.priceTotal - serviceCharge,
+        },
+      });
       SendNotification({
         message: `An order has been placed by ${customer.fullName}`,
         orderNumber: orderId,

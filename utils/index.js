@@ -9,6 +9,7 @@ const ExportCsv = require('./exportCsv');
 const getPriceTotal = require('./getPriceTotal');
 const generateOrderId = require('./generateOrderId');
 const sendToNester = require('./nesterpod');
+const charges = require('./charges');
 
 module.exports = {
   port: config.get('port'),
@@ -26,4 +27,5 @@ module.exports = {
   getPriceTotal,
   generateOrderId,
   sendToNester,
+  charges,
 };
