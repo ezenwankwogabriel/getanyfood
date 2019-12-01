@@ -676,6 +676,9 @@ const orderActions = {
       if (!order) return res.badRequest('Request with order number not found');
       if (order.status === 'completed') return res.unAuthorized('Job has already been completed');
       order.status = status;
+      if (status === 'completed') {
+        order.completedAt = new Date();
+      }
       await order.save();
       return res.success('Updated successfully');
     } catch (ex) {
