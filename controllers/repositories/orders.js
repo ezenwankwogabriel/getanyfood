@@ -198,7 +198,7 @@ const orderActions = {
         });
 
       if (!req.planner) {
-        const { serviceCharge } = charges(order);
+        const { serviceCharge } = charges(fullOrder);
         await User.findByIdAndUpdate(merchantId, {
           $inc: {
             walletAmount: priceTotal - serviceCharge,
