@@ -4,7 +4,9 @@ function charges(order) {
   const taxable = order.delivery.method === 'self'
     ? order.priceTotal
     : order.priceTotal - deliveryCharge;
+    console.log('taxable', (taxable * (order.servicePercentage) / 100))
   const serviceCharge = (taxable * order.servicePercentage) / 100 + deliveryCharge;
+  console.log('serviceCharge', serviceCharge)
 
   return { revenue, deliveryCharge, serviceCharge };
 }
