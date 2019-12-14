@@ -30,13 +30,8 @@ async function checkHourlyDeliveries() {
       merchant,
     };
     try {
-      const { serviceCharge } = charges(order);
       await Order.findByIdAndUpdate(orderId, update);
-      await User.findByIdAndUpdate(merchant, {
-        $inc: {
-          walletAmount: order.priceTotal - serviceCharge,
-        },
-      });
+
       SendNotification({
         message: `An order has been placed by ${customer.fullName}`,
         orderNumber: orderId,
