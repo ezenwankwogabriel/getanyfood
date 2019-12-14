@@ -818,7 +818,7 @@ const orderActions = {
             );
             planner.priceTotal = 0;
             planner.payment.status = data.status;
-            const userQuery = planner.orders.map(order => {
+            const userQuery = planner.orders.map(async order => {
               const fullOrder = await Order.findById(order.orderNumber);
               const { serviceCharge } = charges(fullOrder);
               return {
