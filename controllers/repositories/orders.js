@@ -198,12 +198,6 @@ const orderActions = {
         });
 
       if (!req.planner) {
-        const { serviceCharge } = charges(fullOrder);
-        await User.findByIdAndUpdate(merchantId, {
-          $inc: {
-            walletAmount: priceTotal - serviceCharge,
-          },
-        });
         SendNotification({
           message: `An order has been placed by ${customer.fullName}`,
           orderNumber: fullOrder._id,
@@ -805,7 +799,8 @@ const orderActions = {
         const { event, data } = req.body;
         if (event === 'charge.success') {
           const { reference } = data;
-          if (reference.indexOf('000') > -1) {
+          const regexx = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          if (reference.match(regexx)) {
             // weekly planner payment
             const planner = await WeeklyPlanner.findOne({
               reference: data.reference,
@@ -823,12 +818,16 @@ const orderActions = {
             );
             planner.priceTotal = 0;
             planner.payment.status = data.status;
-            const userQuery = planner.orders.map(order => ({
-              updateOne: {
-                filter: { _id: order.merchant },
-                update: { $inc: { walletAmount: order.price, orderCount: 1 } },
-              },
-            }));
+            const userQuery = planner.orders.map(order => {
+              const fullOrder = await Order.findById(order.orderNumber);
+              const { serviceCharge } = charges(fullOrder);
+              return {
+                updateOne: {
+                  filter: { _id: order.merchant },
+                  update: { $inc: { walletAmount: (order.price - serviceCharge), orderCount: 1 } },
+                }
+              };
+            });
             const paymentQuery = planner.orders.map(order => ({
               insertOne: {
                 customer: planner.customer,
@@ -849,6 +848,7 @@ const orderActions = {
             ]);
           } else {
             const order = await Order.findById(data.reference);
+            const { serviceCharge } = charges(order);
             order.payment.status = data.status;
             const { merchant, customer, priceTotal } = order;
             const payment = new PaymentHistory({
@@ -860,7 +860,7 @@ const orderActions = {
               order.save(), // update order payment status
               payment.save(), // create payment record for this order
               User.findByIdAndUpdate(merchant, {
-                $inc: { walletAmount: priceTotal },
+                $inc: { walletAmount: (priceTotal - serviceCharge), orderCount: 1 },
               }), // update user walletAmount for this merchant
             ]);
           }
