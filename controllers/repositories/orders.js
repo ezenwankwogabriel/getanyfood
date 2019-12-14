@@ -856,6 +856,7 @@ const orderActions = {
               customer,
               amount: priceTotal,
             });
+            console.log('priceTotal', priceTotal, 'serviceCharge', serviceCharge)
             await Promise.all([
               order.save(), // update order payment status
               payment.save(), // create payment record for this order
