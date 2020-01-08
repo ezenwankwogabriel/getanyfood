@@ -257,6 +257,7 @@ const orderActions = {
 
   async plannerList(req, res, next) {
     const queryOptions = {
+      customer: req.user._id,
       populate: [
         {
           path: 'customer',
@@ -799,7 +800,7 @@ const orderActions = {
         const { event, data } = req.body;
         if (event === 'charge.success') {
           const { reference } = data;
-          const regexx = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          const regexx = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
           if (reference.match(regexx)) {
             // weekly planner payment
             const planner = await WeeklyPlanner.findOne({
@@ -818,14 +819,19 @@ const orderActions = {
             );
             planner.priceTotal = 0;
             planner.payment.status = data.status;
-            const userQuery = planner.orders.map(async order => {
+            const userQuery = planner.orders.map(async (order) => {
               const fullOrder = await Order.findById(order.orderNumber);
               const { serviceCharge } = charges(fullOrder);
               return {
                 updateOne: {
                   filter: { _id: order.merchant },
-                  update: { $inc: { walletAmount: (order.price - serviceCharge), orderCount: 1 } },
-                }
+                  update: {
+                    $inc: {
+                      walletAmount: order.price - serviceCharge,
+                      orderCount: 1,
+                    },
+                  },
+                },
               };
             });
             const paymentQuery = planner.orders.map(order => ({
@@ -856,12 +862,20 @@ const orderActions = {
               customer,
               amount: priceTotal,
             });
-            console.log('priceTotal', priceTotal, 'serviceCharge', serviceCharge)
+            console.log(
+              'priceTotal',
+              priceTotal,
+              'serviceCharge',
+              serviceCharge,
+            );
             await Promise.all([
               order.save(), // update order payment status
               payment.save(), // create payment record for this order
               User.findByIdAndUpdate(merchant, {
-                $inc: { walletAmount: (priceTotal - serviceCharge), orderCount: 1 },
+                $inc: {
+                  walletAmount: priceTotal - serviceCharge,
+                  orderCount: 1,
+                },
               }), // update user walletAmount for this merchant
             ]);
           }
