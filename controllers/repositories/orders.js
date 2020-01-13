@@ -260,6 +260,7 @@ const orderActions = {
 
   async plannerList(req, res, next) {
     const queryOptions = {
+      customer: req.user._id,
       populate: [
         {
           path: 'customer',
