@@ -235,15 +235,18 @@ const orderActions = {
       if (order && order.paid) return res.unAuthorized('This order has already been paid for');
       const priceTotal = planner.priceTotal - (order.price || 0);
       const reference = uuid();
-      const transaction = await paystack.transaction.initialize({
-        reference,
-        amount: priceTotal * 100,
-        email: emailAddress,
-      });
-      if (transaction.status !== true) {
-        throw new Error(transaction.message);
+      let transaction = null;
+      if (priceTotal) {
+        transaction = await paystack.transaction.initialize({
+          reference,
+          amount: priceTotal * 100,
+          email: emailAddress,
+        });
+        if (transaction.status !== true) {
+          throw new Error(transaction.message);
+        }
       }
-      const accessCode = transaction.data.access_code;
+      const accessCode = transaction && transaction.data.access_code;
       await WeeklyPlanner.update(
         { _id: plannerId },
         {
@@ -255,6 +258,16 @@ const orderActions = {
       return res.success('Successful');
     } catch (ex) {
       return next(ex);
+    }
+  },
+
+  async removePlanner(req, res, next) {
+    try {
+      const { plannerId } = req.params;
+      const planner = await WeeklyPlanner.findByIdAndRemove(plannerId);
+      res.success(planner);
+    } catch (ex) {
+      next(ex);
     }
   },
 
