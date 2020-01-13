@@ -98,6 +98,9 @@ const orderActions = {
 
       if (endDate && startDate) {
         // save as planner if not exist
+        if (startDate > endDate) {
+          return res.badRequest('Start Date is greater than End Date range');
+        }
         let plannerDoc = await WeeklyPlanner.findOne({
           customer: req.user.id,
           startDate: { $gte: startDate },
@@ -234,7 +237,7 @@ const orderActions = {
       const reference = uuid();
       const transaction = await paystack.transaction.initialize({
         reference,
-        amount: priceTotal,
+        amount: priceTotal * 100,
         email: emailAddress,
       });
       if (transaction.status !== true) {
@@ -862,12 +865,6 @@ const orderActions = {
               customer,
               amount: priceTotal,
             });
-            console.log(
-              'priceTotal',
-              priceTotal,
-              'serviceCharge',
-              serviceCharge,
-            );
             await Promise.all([
               order.save(), // update order payment status
               payment.save(), // create payment record for this order
