@@ -299,6 +299,7 @@ const orderActions = {
   },
 
   async showAllByMerchant(req, res, next) {
+    const { statusType } = req.query;
     const queryOptions = {
       merchant: req.params.id,
       'payment.status': 'success',
@@ -319,6 +320,24 @@ const orderActions = {
         },
       ],
     };
+    if (statusType && statusType.trim()) {
+      const status = {
+        rejected: ['rejected', 'failed'],
+        new: ['pending'],
+        ongoing: [
+          'ongoing',
+          'accepted',
+          'pickup ongoing',
+          'delivery ongoing',
+          'pickup completed',
+        ],
+        completed: ['completed'],
+      };
+      const validStatus = status[statusType];
+      if (validStatus) {
+        queryOptions.status = { $in: validStatus };
+      }
+    }
     try {
       const orders = await utils.PaginateRequest(req, queryOptions, Order);
       const ordersWithCategories = await Promise.all(
