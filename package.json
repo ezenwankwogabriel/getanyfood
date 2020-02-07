@@ -51,7 +51,7 @@
     "lodash": "^4.17.15",
     "luxon": "^1.17.2",
     "moment": "^2.24.0",
-    "mongoose": "^5.6.3",
+    "mongoose": "^5.7.5",
     "mongoose-paginate": "^5.0.3",
     "mongoose-text-search": "^0.0.2",
     "morgan": "^1.9.1",
