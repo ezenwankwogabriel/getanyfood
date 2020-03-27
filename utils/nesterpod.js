@@ -28,14 +28,14 @@ async function sentToNester(order, jobCost) {
       pickup_phone: merchant.phoneNumber,
       pickup_email: merchant.emailAddress,
       pickup_address: merchant.businessAddress,
-      pickup_address_longitude: merchant.businessAddressLongitude,
-      pickup_address_latitude: merchant.businessAddressLatitude,
+      pickup_address_longitude: merchant.businessAddressLongitude || 0,
+      pickup_address_latitude: merchant.businessAddressLatitude || 0,
       recipient_contact_name: customer.fullName,
       recipient_phone: customer.phoneNumber,
       recipient_email: customer.emailAddress,
       recipient_address: location && location.address,
-      recipient_address_latitude: location && location.lat,
-      recipient_address_longitude: location && location.lng,
+      recipient_address_latitude: location && location.lat ? location.lat : 0,
+      recipient_address_longitude: location && location.lng ? location.lng : 0,
     };
     const config = {
       headers: { Authorization: `JWT ${token}` },
