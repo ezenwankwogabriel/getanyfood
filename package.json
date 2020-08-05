@@ -43,7 +43,7 @@
     "ejs": "^2.6.2",
     "express": "^4.17.1",
     "express-async-errors": "^3.1.1",
-    "express-fileupload": "^1.1.5",
+    "express-fileupload": "^1.1.9",
     "helmet": "^3.18.0",
     "http": "0.0.0",
     "json2csv": "^4.5.2",
