@@ -64,7 +64,7 @@
     "paystack-api": "^2.0.1",
     "sendmail": "^1.6.1",
     "shortid": "^2.2.15",
-    "socket.io": "^2.2.0",
+    "socket.io": "^2.5.0",
     "swagger-jsdoc": "^3.2.9",
     "swagger-ui-express": "^4.0.7",
     "uuid": "^3.3.3",
